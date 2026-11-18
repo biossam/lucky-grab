@@ -222,7 +222,7 @@ kbd{font-family:var(--body);font-weight:700;background:#fff;border:1px solid var
     "bonusTries": 2,
     "goldBonusTries": 3,
     "turnSeconds": 20,
-    "shuffle": true
+    "shuffle": true, "shuffleChoices": true
   },
   "questions": [
     {
@@ -383,7 +383,7 @@ const P1C = 0x3a9bfa, P2C = 0xf08a24;
 const INK = '#0b0b45';
 /* ---------------- 퀴즈 설정 읽기 ---------------- */
 const QUIZ = (() => { try { return JSON.parse(document.getElementById('quiz-data').textContent); } catch (e) { console.warn('퀴즈 내용을 읽지 못했어요', e); return { questions: [] }; } })();
-const SET = Object.assign({ startTries: 3, bonusTries: 2, goldBonusTries: 3, turnSeconds: 20, shuffle: true }, QUIZ.settings || {});
+const SET = Object.assign({ startTries: 3, bonusTries: 2, goldBonusTries: 3, turnSeconds: 20, shuffle: true, shuffleChoices: true }, QUIZ.settings || {});
 const QUIZ_ON = Array.isArray(QUIZ.questions) && QUIZ.questions.length > 0;
 const TURN = SET.turnSeconds;    // 자동으로 집기까지 걸리는 시간(초)
 
@@ -1096,7 +1096,10 @@ function openQuiz({ c, gold }){
   if (cur.type === 'choice' || cur.type === 'ox'){
     const opts = cur.type === 'ox' ? ['O', 'X'] : q.choices;
     if (cur.type === 'ox') ch.classList.add('ox');
-    opts.forEach((o, k) => {
+    // 보기 순서 섞기 (OX는 그대로)
+    cur.order = opts.map((_, i) => i);
+    if (cur.type === 'choice' && SET.shuffleChoices !== false) shuffle(cur.order);
+    cur.order.map(i => opts[i]).forEach((o, k) => {
       const b = document.createElement('button'); b.className = 'qc';
       b.innerHTML = cur.type === 'ox' ? esc(o) : `<span class="n">${k + 1}</span><span>${esc(o)}</span>`;
       b.addEventListener('click', () => chooseAnswer(k));
@@ -1115,11 +1118,12 @@ function correctIndex(cur){
   if (typeof q.answer === 'number') return q.answer - 1;
   return q.choices.findIndex(o => String(o).trim() === String(q.answer).trim());
 }
+function shownIndex(cur){ const i = correctIndex(cur); return cur.order ? cur.order.indexOf(i) : i; }
 function chooseAnswer(k){
   const cur = game.cur; if (!cur || cur.answered) return;
   const btns = [...document.querySelectorAll('#qbox .qc')];
   if (k < 0 || k >= btns.length) return;
-  const ok = correctIndex(cur);
+  const ok = shownIndex(cur);
   btns.forEach((b, i) => { b.disabled = true; if (i === ok) b.classList.add('ok'); else if (i === k) b.classList.add('no'); });
   judge(k === ok);
 }
@@ -1145,7 +1149,7 @@ function judge(right){
     html = `<b class="good">정답! 기회 +${bonus}</b>`;
     sfx.win(true);
   } else {
-    const ans = cur.type === 'ox' ? ['O', 'X'][correctIndex(cur)] : cur.type === 'choice' ? (correctIndex(cur) + 1) + '번 ' + (cur.q.choices[correctIndex(cur)] ?? '') : cur.q.answer;
+    const ans = cur.type === 'ox' ? ['O', 'X'][correctIndex(cur)] : cur.type === 'choice' ? (shownIndex(cur) + 1) + '번 ' + (cur.q.choices[correctIndex(cur)] ?? '') : cur.q.answer;
     html = `<b class="bad">아쉬워요!</b>정답은 <strong>${esc(ans)}</strong> 예요.`;
     sfx.slip();
   }
