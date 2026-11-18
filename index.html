@@ -213,8 +213,10 @@ kbd{font-family:var(--body);font-weight:700;background:#fff;border:1px solid var
 .qrcard{position:fixed;right:18px;bottom:18px;z-index:11;display:flex;align-items:center;gap:12px;background:#fff;border:1px solid var(--line);
   border-top:3px solid var(--accent);border-radius:var(--radius);padding:10px 12px;cursor:pointer;font:inherit;color:var(--ink);text-align:left}
 .qrcard:hover{border-color:var(--accent)}
-.qrcard .qr{width:96px;height:96px}
-.qrcard b{display:block;font-family:var(--display);font-size:24px;line-height:1.1}
+.qricon{width:34px;height:34px;display:grid;grid-template-columns:1fr 1fr;gap:4px}
+.qricon i{border:3px solid var(--ink);border-radius:3px}
+.qricon i:nth-child(4){border-style:dotted}
+.qrcard b{display:block;font-family:var(--display);font-size:26px;line-height:1.1}
 .qrcard small{display:block;font-size:12px;color:var(--muted);margin-top:2px}
 .qr svg{width:100%;height:100%;display:block}
 .qrcard.off{display:none}
@@ -368,9 +370,9 @@ body.touch{touch-action:manipulation}
 }
 </script>
 
-<button type="button" class="qrcard off" id="qrcard" aria-label="학생 접속 QR 크게 보기">
-  <div class="qr" id="qrSmall"></div>
-  <span><b>학생 기기로 하기</b><small>QR을 찍으면 지금 고른 단원으로<br>혼자 풀 수 있어요 · 누르면 크게</small></span>
+<button type="button" class="qrcard off" id="qrcard" aria-label="학생 접속 QR 보이기">
+  <span class="qricon" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+  <span><b>학생 QR</b><small>누르면 QR이 떠요 <kbd>G</kbd></small></span>
 </button>
 <div class="overlay hide qrbig" id="qrbig">
   <div class="box">
@@ -1428,7 +1430,8 @@ addEventListener('keydown', e => {
     else if (e.code === 'Escape'){ if (twice('esc', 'ESC를 한 번 더 누르면 처음 화면으로 가요 (지금 결과가 사라져요)')) toStart(); }
     return;
   }
-  if (!$('#qrbig').classList.contains('hide')){ if (e.code === 'Escape' || e.code === 'Enter') closeQR(); return; }
+  if (!$('#qrbig').classList.contains('hide')){ if (e.code === 'Escape' || e.code === 'Enter' || e.code === 'KeyG') closeQR(); return; }
+  if (e.code === 'KeyG' && QR && game.phase === 'start'){ openQR(); return; }
   switch (e.code){
     case 'Digit1': case 'Numpad1': if (game.phase === 'start') startGame('solo'); break;
     case 'Digit2': case 'Numpad2': if (game.phase === 'start' && !STUDENT) startGame('duo'); break;
@@ -1524,10 +1527,8 @@ function drawQR(el, url){
   catch (e) { el.textContent = ''; }
 }
 function updateQR(){
-  if (!QR) return;
-  const url = studentURL();
-  drawQR($('#qrSmall'), url);
-  if (!$('#qrbig').classList.contains('hide')) openQR();
+  // QR은 선생님이 버튼을 눌렀을 때만 그려요
+  if (QR && !$('#qrbig').classList.contains('hide')) openQR();
 }
 function openQR(){
   const url = studentURL();
@@ -1536,7 +1537,7 @@ function openQR(){
   $('#qrInfo').textContent = BANK ? `${bankSel.grade}학년 ${bankSel.sem}학기 · ` + unitsOf().filter(u => bankSel.units.includes(u.id)).map(u => u.name).join(', ') : (QUIZ.title || 'LUCKY GRAB');
   $('#qrbig').classList.remove('hide');
 }
-function closeQR(){ $('#qrbig').classList.add('hide'); }
+function closeQR(){ $('#qrbig').classList.add('hide'); $('#qrLarge').innerHTML = ''; $('#qrUrl').textContent = ''; }
 async function initQR(){
   if (STUDENT || !/^https?:$/.test(location.protocol)) return;
   try { QR = (await import('qrcode')).qrcode; } catch (e) { return; }
