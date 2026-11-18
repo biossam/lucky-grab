@@ -44,8 +44,9 @@ const ro = n => [1, 7, 8].includes(n % 10) ? '로' : bat(n) ? '으로' : '로';
 
 const BAD = /NaN|undefined|Infinity|null|-\d/;
 function Q(q, ans, wrongs, explain, near){
-  const out = [String(ans)];
-  const add = w => { if (w === null || w === undefined || w === false) return; const s = String(w); if (!BAD.test(s) && !out.includes(s)) out.push(s); };
+  const str = w => typeof w === 'number' ? N(w) : String(w);
+  const out = [str(ans)];
+  const add = w => { if (w === null || w === undefined || w === false) return; const s = str(w); if (!BAD.test(s) && !out.includes(s)) out.push(s); };
   for (const w of wrongs){ add(w); if (out.length === 4) break; }
   for (let k = 1; out.length < 4 && near && k < 40; k++) add(near(k));
   return { type: 'choice', q, choices: out.slice(0, 4), answer: 1, explain };
@@ -121,7 +122,7 @@ function g32Div(){
 }
 function g32Frac(){
   const t = R(0, 3), b = R(3, 9), m = R(2, 9), a = b * m;
-  if (t === 0) return Q(`${a}의 ${raw(1, b)}은 얼마일까요?`, m, [b, m + 1, m * 2, a - m], `${a}를 똑같이 ${b}묶음으로 나누면 한 묶음은 ${m}`);
+  if (t === 0) return Q(`${a}의 ${raw(1, b)}은 얼마일까요?`, m, [b, m + 1, m * 2, a - m], `${a}${j(a, '을', '를')} 똑같이 ${b}묶음으로 나누면 한 묶음은 ${m}`);
   if (t === 1){
     const c = R(2, b - 1);
     return Q(`${a}의 ${raw(c, b)}${j(c, '은', '는')} 얼마일까요?`, m * c, [m, m * (c + 1), a - c, m * c + 1], `${a}의 ${raw(1, b)}은 ${m}, ${raw(c, b)}${j(c, '은', '는')} ${m} × ${c} = ${m * c}`);
@@ -135,7 +136,7 @@ function g32Frac(){
   }
   const w = R(1, 4), d = R(3, 9), r = R(1, d - 1), n = w * d + r;
   return Q(`${mx(w, r, d)}${j(r, '을', '를')} 가분수로 나타내면?`, raw(n, d),
-    [raw(w * r + d, d), raw(w + r, d), raw(n + 1, d), raw(n + d, d)], `${w} × ${d} + ${r} = ${n} 이니까 ${raw(n, d)}`, k => raw(n + k + 1, d));
+    [raw(w * r + d, d), raw(w * d, d), raw(n + 1, d), raw(n + d, d)], `${w} × ${d} + ${r} = ${n} 이니까 ${raw(n, d)}`, k => raw(n + k + 1, d));
 }
 
 /* ================= 4학년 1학기 ================= */
@@ -264,7 +265,7 @@ function g51Reduce(){
   if (t === 1){
     const l = lcm(b, d);
     return Q(`${raw(a, b)}${j(a, '과', '와')} ${raw(c, d)}${j(c, '을', '를')} 가장 작은 공통분모로 통분하면\n공통분모는?`, l, [b * d !== l ? b * d : null, b + d, Math.max(b, d), l * 2],
-      `${b}${j(b, '과', '와')} ${d}의 최소공배수 ${l}이 가장 작은 공통분모예요.`, k => l * (k + 2));
+      `${b}${j(b, '과', '와')} ${d}의 최소공배수 ${l}${j(l, '이', '가')} 가장 작은 공통분모예요.`, k => l * (k + 2));
   }
   const v1 = a * d, v2 = c * b;
   if (v1 === v2) return g51Reduce();
@@ -316,12 +317,12 @@ function g52FracMul(){
   if (t === 0){
     const b = R(3, 9), a = co(b), k = R(2, 9), s = F(a * k, b);
     return Q(`${raw(a, b)} × ${k} = ?`, fs(s), [raw(a * k, b * k), fs(F(a, b * k)), fs(F(a * k + 1, b)), fs(F(a * k + b, b))],
-      `분자에 자연수를 곱해요. ${raw(a * k, b)} = ${fs(s)}`, x => fs(F(a * k + x + 1, b)));
+      `분자에 자연수를 곱해요. ${raw(a * k, b)}${raw(a * k, b) !== fs(s) ? ' = ' + fs(s) : ''}`, x => fs(F(a * k + x + 1, b)));
   }
   if (t === 1){
     const b = R(2, 9), a = co(b), d = R(2, 9), c = co(d), s = F(a * c, b * d);
     return Q(`${raw(a, b)} × ${raw(c, d)} = ?`, fs(s), [fs(F(a * d, b * c)), raw(a + c, b + d), fs(F(a * c, b + d)), fs(F(a * c + 1, b * d))],
-      `분자끼리, 분모끼리 곱해요. ${raw(a * c, b * d)} = ${fs(s)}`, x => fs(F(a * c + x + 1, b * d)));
+      `분자끼리, 분모끼리 곱해요. ${raw(a * c, b * d)}${raw(a * c, b * d) !== fs(s) ? ' = ' + fs(s) : ''}`, x => fs(F(a * c + x + 1, b * d)));
   }
   const w = R(1, 3), d = R(2, 6), r = co(d), k = R(2, 5), s = F((w * d + r) * k, d);
   return Q(`${mx(w, r, d)} × ${k} = ?`, fs(s), [mx(w * k, r, d), fs(F((w * d + r) * k + 1, d)), fs(F((w * d + r) * k - 1, d)), fs(F((w * d + r) * k + d, d))],
@@ -434,10 +435,10 @@ function g62Prop(){
   if (t === 1){
     let a, b; do { a = R(1, 5); b = R(1, 5); } while (a === b);
     const u = R(2, 20), T = u * (a + b), ans = u * a;
-    return Q(`${T}${j(T, '을', '를')} ${a} : ${b}로 비례배분하면\n앞의 수는 얼마일까요?`, ans, [u * b, T % 2 === 0 ? T / 2 : null, ans + u, T - a], `${T} × ${raw(a, a + b)} = ${ans}`, x => ans + x + 1);
+    return Q(`${T}${j(T, '을', '를')} ${a} : ${b}${ro(b)} 비례배분하면\n앞의 수는 얼마일까요?`, ans, [u * b, T % 2 === 0 ? T / 2 : null, ans + u, T - a], `${T} × ${raw(a, a + b)} = ${ans}`, x => ans + x + 1);
   }
   const a = R(2, 9), b = R(2, 9), k = R(2, 5), c = a * k, d = b * k;
-  return Q(`비례식 ${a} : ${b} = ${c} : ${d}에서\n외항의 곱은 얼마일까요?`, a * d, [a * c, b * d, a + d, c * d], `외항은 ${a}${j(a, '과', '와')} ${d} → ${a} × ${d} = ${a * d} (내항의 곱 ${b} × ${c}${j(b * c, '과', '와')} 같아요)`, x => a * d + x + 1);
+  return Q(`비례식 ${a} : ${b} = ${c} : ${d}에서\n외항의 곱은 얼마일까요?`, a * d, [a * c, b * d, a + d, c * d], `외항은 ${a}${j(a, '과', '와')} ${d} → ${a} × ${d} = ${a * d} (내항의 곱 ${b} × ${c}${j(c, '과', '와')} 같아요)`, x => a * d + x + 1);
 }
 function g62Circle(){
   const t = R(0, 3), r = R(2, 15), d = r * 2;
