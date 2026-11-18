@@ -45,8 +45,8 @@ def build(src):
     d = json.loads(src.read_text(encoding='utf-8'))
     check(d, src.name)
     html = BLOCK.sub(lambda m: m.group(1) + json.dumps(d, ensure_ascii=False, indent=2) + m.group(2), TPL, count=1)
-    html = html.replace('"three": "./vendor/three/three.module.js"', '"three": "../vendor/three/three.module.js"')
-    html = html.replace('"three/addons/": "./vendor/three/addons/"', '"three/addons/": "../vendor/three/addons/"')
+    imap = re.search(r'<script type="importmap">.*?</script>', html, re.S)
+    html = html[:imap.start()] + imap.group(0).replace('"./vendor/', '"../vendor/') + html[imap.end():]
     title = str(d.get('title') or 'LUCKY GRAB').replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
     html = html.replace('<title>LUCKY GRAB</title>', f'<title>{title}</title>', 1)
     assert '../vendor/three/three.module.js' in html

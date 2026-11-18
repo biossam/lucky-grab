@@ -208,6 +208,36 @@ kbd{font-family:var(--body);font-weight:700;background:#fff;border:1px solid var
 .mixed{white-space:nowrap}
 .qno .qtag{font-family:var(--body);font-size:13px;font-weight:700;color:var(--accent);background:var(--p1bg);border-radius:99px;padding:2px 9px;margin-left:8px;vertical-align:4px}
 
+/* 학생 접속 QR */
+.qrcard{position:fixed;right:18px;bottom:18px;z-index:11;display:flex;align-items:center;gap:12px;background:#fff;border:1px solid var(--line);
+  border-top:3px solid var(--accent);border-radius:var(--radius);padding:10px 12px;cursor:pointer;font:inherit;color:var(--ink);text-align:left}
+.qrcard:hover{border-color:var(--accent)}
+.qrcard .qr{width:96px;height:96px}
+.qrcard b{display:block;font-family:var(--display);font-size:24px;line-height:1.1}
+.qrcard small{display:block;font-size:12px;color:var(--muted);margin-top:2px}
+.qr svg{width:100%;height:100%;display:block}
+.qrcard.off{display:none}
+.qrbig{z-index:15}
+.qrbig .box{background:#fff;border:1px solid var(--line);border-top:6px solid var(--accent);border-radius:var(--radius);padding:22px 28px;text-align:center;max-width:94vw}
+.qrbig .qr{width:min(62vh,80vw);height:min(62vh,80vw);margin:8px auto 10px}
+.qrbig h2{font-family:var(--display);font-weight:700;font-size:44px;margin:0;line-height:1.1}
+.qrbig p{margin:4px 0 0;color:var(--ink2);font-size:15px}
+.qrbig code{display:block;margin-top:8px;font-size:12px;color:var(--muted);word-break:break-all;user-select:text}
+/* 화면 버튼 (휴대폰·태블릿) */
+#touch{position:fixed;left:0;right:0;bottom:max(14px,env(safe-area-inset-bottom));z-index:5;display:flex;justify-content:center;gap:14px;
+  pointer-events:none;transition:opacity .2s}
+#touch.hide{opacity:0}
+#touch.hide button{pointer-events:none}
+#touch button{pointer-events:auto;touch-action:none;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;
+  width:78px;height:78px;border-radius:50%;border:2px solid var(--line);background:rgba(255,255,255,.92);color:var(--ink);
+  font:inherit;font-family:var(--display);font-weight:700;font-size:30px;box-shadow:0 4px 0 var(--line)}
+#touch button.grab{width:120px;border-radius:40px;background:var(--accent);border-color:var(--accent);color:#fff;font-size:30px;box-shadow:0 4px 0 #2a7fd6}
+#touch button.on{transform:translateY(3px);box-shadow:0 1px 0 var(--line)}
+#touch button.grab.on{box-shadow:0 1px 0 #2a7fd6}
+body.touch #help{display:none}
+body.student .card.p2,body.student .card.p3,body.student .hint{display:none}
+body.touch{touch-action:manipulation}
+
 #loading{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;background:var(--bg);z-index:30;transition:opacity .4s}
 #loading b{font-family:var(--display);font-weight:700;font-size:52px}
 #loading small{color:var(--muted);font-size:15px;text-align:center;padding:0 20px}
@@ -216,7 +246,8 @@ kbd{font-family:var(--body);font-weight:700;background:#fff;border:1px solid var
 <script type="importmap">
 { "imports": {
   "three": "./vendor/three/three.module.js",
-  "three/addons/": "./vendor/three/addons/"
+  "three/addons/": "./vendor/three/addons/",
+  "qrcode": "./vendor/qrcode/qrcode.mjs"
 } }
 </script>
 </head>
@@ -233,6 +264,11 @@ kbd{font-family:var(--body);font-weight:700;background:#fff;border:1px solid var
 
 <div id="count"></div>
 <div id="help" class="hide"></div>
+<div id="touch" class="hide" hidden>
+  <button type="button" data-k="ArrowLeft" aria-label="왼쪽">◀</button>
+  <button type="button" class="grab" data-k="Space" aria-label="집기">집기</button>
+  <button type="button" data-k="ArrowRight" aria-label="오른쪽">▶</button>
+</div>
 <div id="toast"></div>
 
 <div class="overlay" id="start">
@@ -331,6 +367,20 @@ kbd{font-family:var(--body);font-weight:700;background:#fff;border:1px solid var
 }
 </script>
 
+<button type="button" class="qrcard off" id="qrcard" aria-label="학생 접속 QR 크게 보기">
+  <div class="qr" id="qrSmall"></div>
+  <span><b>학생 기기로 하기</b><small>QR을 찍으면 지금 고른 단원으로<br>혼자 풀 수 있어요 · 누르면 크게</small></span>
+</button>
+<div class="overlay hide qrbig" id="qrbig">
+  <div class="box">
+    <h2>QR을 찍어 보세요</h2>
+    <p id="qrInfo"></p>
+    <div class="qr" id="qrLarge"></div>
+    <code id="qrUrl"></code>
+    <div class="res-actions" style="justify-content:center;margin-top:12px"><button class="btn primary" id="qrClose" type="button">닫기 <kbd>ESC</kbd></button></div>
+  </div>
+</div>
+
 <div id="loading"><b>LUCKY GRAB</b><small>공을 채우는 중…</small></div>
 
 <script>
@@ -361,7 +411,10 @@ const SET = {
   turnSeconds: num(SET0.turnSeconds, 20, 5, 120), shuffle: SET0.shuffle !== false, shuffleChoices: SET0.shuffleChoices !== false
 };
 const QUIZ_ON = (Array.isArray(QUIZ.questions) && QUIZ.questions.length > 0) || typeof QUIZ.bank === 'string';
-let BANK = null;   // 문제 뱅크 (bank/*.js) — 퀴즈 JSON에 "bank" 주소가 있을 때만
+let BANK = null;
+const PARAMS = new URLSearchParams(location.search);
+const STUDENT = PARAMS.get('mode') === 'student';   // 학생 기기 (QR로 들어옴)
+const TOUCH = STUDENT || matchMedia('(pointer: coarse)').matches;   // 문제 뱅크 (bank/*.js) — 퀴즈 JSON에 "bank" 주소가 있을 때만
 const TURN = SET.turnSeconds;    // 자동으로 집기까지 걸리는 시간(초)
 
 /* ---------------- 렌더러 ---------------- */
@@ -1374,10 +1427,11 @@ addEventListener('keydown', e => {
     else if (e.code === 'Escape'){ if (twice('esc', 'ESC를 한 번 더 누르면 처음 화면으로 가요 (지금 결과가 사라져요)')) toStart(); }
     return;
   }
+  if (!$('#qrbig').classList.contains('hide')){ if (e.code === 'Escape' || e.code === 'Enter') closeQR(); return; }
   switch (e.code){
     case 'Digit1': case 'Numpad1': if (game.phase === 'start') startGame('solo'); break;
-    case 'Digit2': case 'Numpad2': if (game.phase === 'start') startGame('duo'); break;
-    case 'Digit3': case 'Numpad3': if (game.phase === 'start') openSetup(); break;
+    case 'Digit2': case 'Numpad2': if (game.phase === 'start' && !STUDENT) startGame('duo'); break;
+    case 'Digit3': case 'Numpad3': if (game.phase === 'start' && !STUDENT) openSetup(); break;
     case 'KeyN':
       if (game.cls && (game.phase === 'play' || game.phase === 'turn') && !isBusy()){ toast(curP().label + ' 건너뛰기'); game.endT = 0; nextTurn(); }
       break;
@@ -1409,7 +1463,7 @@ function twice(key, msg){
 const BANK_KEY = 'luckygrab-bank-v1';
 const bankSel = { grade: 6, sem: 2, units: [] };
 const unitsOf = () => BANK.UNITS.filter(u => u.grade === bankSel.grade && u.sem === bankSel.sem);
-function saveBank(){ try { localStorage.setItem(BANK_KEY, JSON.stringify(bankSel)); } catch (e) {} }
+function saveBank(){ if (STUDENT) return; try { localStorage.setItem(BANK_KEY, JSON.stringify(bankSel)); } catch (e) {} }
 function setupBank(){
   try {
     const v = JSON.parse(localStorage.getItem(BANK_KEY) || '{}') || {};
@@ -1417,8 +1471,15 @@ function setupBank(){
     if ([1, 2].includes(v.sem)) bankSel.sem = v.sem;
     if (Array.isArray(v.units)) bankSel.units = v.units.filter(id => typeof id === 'string' && unitsOf().some(u => u.id === id));
   } catch (e) {}
+  if (STUDENT && PARAMS.has('u')){
+    // 선생님이 QR에 담은 학년·학기·단원 그대로
+    const g = +PARAMS.get('g'), sm = +PARAMS.get('s');
+    if ([3, 4, 5, 6].includes(g)) bankSel.grade = g;
+    if ([1, 2].includes(sm)) bankSel.sem = sm;
+    bankSel.units = (PARAMS.get('u') || '').split('.').filter(id => unitsOf().some(u => u.id === id));
+  }
   if (!bankSel.units.length) bankSel.units = unitsOf().map(u => u.id);
-  $('#bank').hidden = false; $('#start').classList.add('has-bank');
+  $('#bank').hidden = STUDENT; $('#start').classList.add('has-bank');
   renderBank();
 }
 function renderBank(){
@@ -1438,9 +1499,68 @@ function renderBank(){
     const i = bankSel.units.indexOf(u.id); if (i >= 0) bankSel.units.splice(i, 1); else bankSel.units.push(u.id);
   } })));
   const n = bankSel.units.length;
+  updateQR();
+  if (STUDENT){
+    $('#qrule').innerHTML = `<b>${bankSel.grade}-${bankSel.sem}</b> ` + unitsOf().filter(u => bankSel.units.includes(u.id)).map(u => esc(u.name)).join(' · ');
+    return;
+  }
   $('#qrule').innerHTML = n
     ? `<b>${bankSel.grade}-${bankSel.sem}</b> · 단원 ${n}개 · 맞히면 뽑기 기회 <b>+${SET.bonusTries}</b> · 처음 기회 <b>${SET.startTries}번</b>`
     : '단원을 하나 이상 골라 주세요';
+}
+
+/* ---------------- 학생 접속 QR ---------------- */
+let QR = null;
+function studentURL(){
+  const u = new URL(location.pathname, location.origin);
+  u.searchParams.set('mode', 'student');
+  if (BANK){ u.searchParams.set('g', bankSel.grade); u.searchParams.set('s', bankSel.sem); u.searchParams.set('u', bankSel.units.join('.')); }
+  return u.href;
+}
+function drawQR(el, url){
+  if (!QR) return;
+  try { const q = QR(0, 'M'); q.addData(url); q.make(); el.innerHTML = q.createSvgTag({ cellSize: 4, margin: 8, scalable: true }); }
+  catch (e) { el.textContent = ''; }
+}
+function updateQR(){
+  if (!QR) return;
+  const url = studentURL();
+  drawQR($('#qrSmall'), url);
+  if (!$('#qrbig').classList.contains('hide')) openQR();
+}
+function openQR(){
+  const url = studentURL();
+  drawQR($('#qrLarge'), url);
+  $('#qrUrl').textContent = url;
+  $('#qrInfo').textContent = BANK ? `${bankSel.grade}학년 ${bankSel.sem}학기 · ` + unitsOf().filter(u => bankSel.units.includes(u.id)).map(u => u.name).join(', ') : (QUIZ.title || 'LUCKY GRAB');
+  $('#qrbig').classList.remove('hide');
+}
+function closeQR(){ $('#qrbig').classList.add('hide'); }
+async function initQR(){
+  if (STUDENT || !/^https?:$/.test(location.protocol)) return;
+  try { QR = (await import('qrcode')).qrcode; } catch (e) { return; }
+  updateQR();
+}
+$('#qrcard').addEventListener('click', e => { e.currentTarget.blur(); openQR(); });
+$('#qrClose').addEventListener('click', closeQR);
+
+/* ---------------- 화면 버튼 (휴대폰·태블릿) ---------------- */
+if (TOUCH){
+  document.body.classList.add('touch');
+  $('#touch').hidden = false;
+  document.querySelectorAll('#touch button').forEach(b => {
+    const k = b.dataset.k;
+    const down = e => { e.preventDefault(); initAudio(); b.setPointerCapture?.(e.pointerId); keys.add(k); pressedNow.add(k); b.classList.add('on'); };
+    const up = () => { keys.delete(k); b.classList.remove('on'); };
+    b.addEventListener('pointerdown', down);
+    b.addEventListener('pointerup', up); b.addEventListener('pointercancel', up); b.addEventListener('lostpointercapture', up);
+    b.addEventListener('contextmenu', e => e.preventDefault());
+  });
+}
+if (STUDENT){
+  document.body.classList.add('student');
+  document.querySelector('.card.p1 strong').textContent = '시작하기';
+  document.querySelector('.card.p1 small').textContent = '혼자 풀어요';
 }
 
 function again(){ startGame(G.mode, game.cls ? makeCls(game.cls.cfg) : null); }
@@ -1551,6 +1671,8 @@ function loop(now){
       syncBalls(dt);
     }
     updateTags();
+    $('#qrcard').classList.toggle('off', !QR || game.phase !== 'start');
+    if (TOUCH) $('#touch').classList.toggle('hide', !(game.phase === 'play' || game.phase === 'count' || game.phase === 'turn'));
     pressedNow.clear();
   }
   renderer.render(scene, camera);
@@ -1562,7 +1684,8 @@ function loop(now){
     try { BANK = await import(new URL(QUIZ.bank, location.href).href); setupBank(); }
     catch (e) { console.warn('문제 뱅크를 불러오지 못했어요', e); $('#qrule').textContent = '문제 뱅크를 불러오지 못했어요'; }
   }
-  const first = location.hash === '#solo' ? 'solo' : 'duo';
+  const first = STUDENT || location.hash === '#solo' ? 'solo' : 'duo';
+  initQR();
   buildWorld(first);
   selectCard(first);
   renderScores();
