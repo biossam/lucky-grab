@@ -93,6 +93,58 @@ kbd{font-family:var(--body);font-weight:700;background:#fff;border:1px solid var
   font-size:14px;font-weight:500;opacity:0;transition:.25s;pointer-events:none;z-index:20}
 #toast.show{opacity:1;transform:translate(-50%,0)}
 
+/* 퀴즈 창 */
+.quiz{position:fixed;inset:0;display:grid;place-items:center;background:rgba(11,11,69,.28);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);
+  z-index:12;padding:20px;transition:opacity .25s}
+.quiz.hide{opacity:0;pointer-events:none}
+.qbox{--c:var(--p1);--cb:var(--p1bg);width:min(880px,94vw);max-height:92vh;overflow:auto;background:#fff;border:1px solid var(--line);
+  border-top:6px solid var(--c);border-radius:var(--radius);padding:26px 32px 24px;animation:qin .35s cubic-bezier(.25,1,.5,1)}
+.qbox.p2{--c:var(--p2);--cb:var(--p2bg)}
+@keyframes qin{from{transform:translateY(16px) scale(.97);opacity:0}}
+.qhead{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:6px}
+.qwho{background:var(--c);color:#fff;font-weight:700;font-size:13px;padding:3px 10px;border-radius:99px}
+.qno{font-family:var(--display);font-weight:700;font-size:26px;color:var(--ink2)}
+.qgold{font-size:13px;font-weight:700;color:#6b5b1c;background:#fcf8e3;border:1px solid #e6d891;padding:2px 10px;border-radius:99px}
+.qtext{font-weight:700;font-size:clamp(24px,3.4vw,38px);line-height:1.4;margin:4px 0 18px;white-space:pre-line}
+.qimg{display:block;max-width:100%;max-height:34vh;margin:0 auto 18px;border-radius:var(--radius)}
+.qimg[hidden]{display:none}
+.qchoices{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.qc{display:flex;align-items:center;gap:12px;padding:14px 16px;border:2px solid var(--line);border-radius:var(--radius);background:#fff;
+  font:inherit;font-size:clamp(18px,2.2vw,24px);font-weight:500;color:var(--ink);cursor:pointer;text-align:left;transition:border-color .15s,background .15s}
+.qc:hover:not(:disabled){border-color:var(--c);background:var(--cb)}
+.qc .n{flex:none;width:36px;height:36px;border-radius:50%;display:grid;place-items:center;background:var(--cb);color:var(--c);
+  font-family:var(--display);font-weight:700;font-size:24px}
+.qchoices.ox .qc{justify-content:center;font-family:var(--display);font-weight:700;font-size:84px;line-height:1;padding:10px}
+.qc.ok{border-color:#5a9d76;background:#eaf7ef}
+.qc.no{border-color:#b0657f;background:#fdeef3}
+.qc:disabled{cursor:default}
+.qanswer{border:2px dashed var(--p1line);background:var(--p1bg);border-radius:var(--radius);padding:14px 18px;font-size:clamp(20px,2.6vw,28px);font-weight:700}
+.qanswer small{display:block;font-size:13px;color:var(--muted);font-weight:700;letter-spacing:.1em}
+.qresult{margin-top:16px;font-size:17px;line-height:1.6;color:var(--ink2)}
+.qresult b{font-family:var(--display);font-size:38px;line-height:1.1;display:block}
+.qresult .good{color:#2f6446}.qresult .bad{color:#7a3550}
+.qactions{display:flex;justify-content:flex-end;gap:10px;margin-top:18px;flex-wrap:wrap}
+.btn{font:inherit;font-weight:700;font-size:16px;padding:10px 20px;border-radius:var(--radius);border:1px solid var(--line);background:#fff;color:var(--ink);cursor:pointer}
+.btn:hover{border-color:var(--ink2)}
+.btn.primary{background:var(--ink);color:#fff;border-color:var(--ink)}
+.btn.good{background:#eaf7ef;border-color:#5a9d76;color:#2f6446}
+.btn.bad{background:#fdeef3;border-color:#b0657f;color:#7a3550}
+.btn kbd{margin-left:6px}
+@media (max-width:640px){.qchoices{grid-template-columns:1fr}}
+
+/* 결과 화면 */
+.res-cards{display:flex;gap:18px;flex-wrap:wrap;justify-content:center;margin-bottom:24px}
+.res{--c:var(--p1);--cl:var(--p1line);min-width:230px;background:#fff;border:2px solid var(--cl);border-top:6px solid var(--c);border-radius:var(--radius);
+  padding:16px 26px 18px;text-align:center}
+.res.p2{--c:var(--p2);--cl:var(--p2line)}
+.res .who{font-weight:700;font-size:13px;letter-spacing:.12em;color:var(--c)}
+.res .win{display:inline-block;margin-left:6px;background:var(--c);color:#fff;border-radius:99px;padding:1px 8px;font-size:11px;letter-spacing:0}
+.res b{display:block;font-family:var(--display);font-weight:700;font-size:72px;line-height:1.05}
+.res span{font-size:14px;color:var(--ink2)}
+.res-actions{display:flex;gap:12px}
+.rule{margin:-6px 0 22px;font-size:15px;color:var(--ink2);text-align:center}
+.rule b{color:var(--accent)}
+
 #loading{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;background:var(--bg);z-index:30;transition:opacity .4s}
 #loading b{font-family:var(--display);font-weight:700;font-size:52px}
 #loading small{color:var(--muted);font-size:15px;text-align:center;padding:0 20px}
@@ -129,8 +181,9 @@ kbd{font-family:var(--body);font-weight:700;background:#fff;border:1px solid var
     <path d="M54 66 Q60 72 60 66 Q60 72 66 66" fill="none" stroke="#0b0b45" stroke-width="4" stroke-linecap="round"/>
     <circle cx="33" cy="68" r="6" fill="#ffc2d4"/><circle cx="87" cy="68" r="6" fill="#ffc2d4"/>
   </svg>
-  <div class="kicker">LUCKY GRAB</div>
+  <div class="kicker" id="qtitle">LUCKY GRAB</div>
   <h1>ARE YOU<br><em>READY?</em></h1>
+  <div class="rule" id="qrule"></div>
   <div class="sub">SELECT PLAYERS</div>
   <div class="cards">
     <button class="card p1" data-mode="solo"><b>1</b><span><strong>PLAYER</strong><small>혼자 · 세로 화면</small></span></button>
@@ -138,6 +191,45 @@ kbd{font-family:var(--body);font-weight:700;background:#fff;border:1px solid var
   </div>
   <div class="hint">숫자 <kbd>1</kbd> <kbd>2</kbd> 를 눌러도 돼요 · 화면을 누르거나 키를 누르면 음악이 나와요</div>
 </div>
+
+<div class="quiz hide" id="quiz"><div class="qbox" id="qbox">
+  <div class="qhead"><span class="qwho"></span><span class="qno"></span><span class="qgold" hidden></span></div>
+  <div class="qtext"></div><img class="qimg" alt="" hidden>
+  <div class="qchoices"></div>
+  <div class="qresult"></div>
+  <div class="qactions"></div>
+</div></div>
+
+<div class="overlay hide" id="result">
+  <div class="kicker">GAME OVER</div>
+  <h1>게임 끝!</h1>
+  <div class="rule" id="rreason"></div>
+  <div class="res-cards" id="rcards"></div>
+  <div class="res-actions"><button class="btn primary" id="again">다시 하기 <kbd>Enter</kbd></button><button class="btn" id="home">처음으로 <kbd>ESC</kbd></button></div>
+</div>
+
+<!-- ===================== 퀴즈 내용 =====================
+  여기만 바꾸면 새 퀴즈 게임이 돼요.
+  type: "choice"(객관식, answer = 정답 번호 1부터) · "ox"(answer = "O" 또는 "X") · "open"(주관식, 선생님이 맞음/틀림 판정)
+  explain(풀이), image(그림 주소, 선택)는 넣지 않아도 돼요.
+======================================================= -->
+<script type="application/json" id="quiz-data">
+{
+  "title": "LUCKY GRAB 퀴즈",
+  "subtitle": "공을 뽑으면 퀴즈가 나와요",
+  "settings": { "startTries": 3, "bonusTries": 2, "goldBonusTries": 3, "turnSeconds": 20, "shuffle": true },
+  "questions": [
+    { "type": "choice", "q": "태양계에서 가장 큰 행성은 무엇일까요?", "choices": ["수성", "지구", "목성", "화성"], "answer": 3, "explain": "목성은 지구보다 지름이 약 11배나 커요." },
+    { "type": "ox", "q": "거미는 곤충이다.", "answer": "X", "explain": "거미는 다리가 8개라서 곤충이 아니에요." },
+    { "type": "open", "q": "3 × 7 = ?", "answer": "21" },
+    { "type": "choice", "q": "훈민정음을 만든 왕은 누구일까요?", "choices": ["태조", "세종대왕", "정조", "광개토대왕"], "answer": 2 },
+    { "type": "ox", "q": "직각은 90°이다.", "answer": "O" },
+    { "type": "open", "q": "빛의 삼원색 세 가지를 말해 보세요.", "answer": "빨강, 초록, 파랑" },
+    { "type": "choice", "q": "물이 끓는 온도는 몇 ℃일까요? (1기압)", "choices": ["0℃", "50℃", "100℃", "200℃"], "answer": 3 },
+    { "type": "ox", "q": "지구는 하루에 한 바퀴 스스로 돈다.", "answer": "O", "explain": "이것을 자전이라고 해요." }
+  ]
+}
+</script>
 
 <div id="loading"><b>LUCKY GRAB</b><small>공을 채우는 중…</small></div>
 
@@ -160,7 +252,11 @@ import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.j
 const $ = s => document.querySelector(s);
 const P1C = 0x3a9bfa, P2C = 0xf08a24;
 const INK = '#0b0b45';
-const TURN = 20;                 // 자동으로 집기까지 걸리는 시간(초)
+/* ---------------- 퀴즈 설정 읽기 ---------------- */
+const QUIZ = (() => { try { return JSON.parse(document.getElementById('quiz-data').textContent); } catch (e) { console.warn('퀴즈 내용을 읽지 못했어요', e); return { questions: [] }; } })();
+const SET = Object.assign({ startTries: 3, bonusTries: 2, goldBonusTries: 3, turnSeconds: 20, shuffle: true }, QUIZ.settings || {});
+const QUIZ_ON = Array.isArray(QUIZ.questions) && QUIZ.questions.length > 0;
+const TURN = SET.turnSeconds;    // 자동으로 집기까지 걸리는 시간(초)
 
 /* ---------------- 렌더러 ---------------- */
 const renderer = new THREE.WebGLRenderer({ canvas: $('#c'), antialias: true, powerPreference: 'high-performance' });
@@ -478,7 +574,7 @@ function makeClawState(i, color, x, chute, left, right, grab){
   const cable = new THREE.Mesh(new THREE.CylinderGeometry(.025, .025, 1, 8), whiteMat); world.add(cable);
   const c = {
     i, color, x, y: Y_TOP, state: 'idle', open: .55, th: SHUT_TH, closeTh: SHUT_TH, timer: TURN, auto: false, downT: 0,
-    held: null, hoff: new THREE.Vector3(), slip: false, slipY: 0, score: 0, chute, chuteX: chute.cx,
+    held: null, hoff: new THREE.Vector3(), slip: false, slipY: 0, score: 0, tries: QUIZ_ON ? SET.startTries : Infinity, correct: 0, grabs: 0, chute, chuteX: chute.cx,
     binds: { left, right, grab }, mesh: m, cable,
     cols: [{ c: new THREE.Vector3(), r: .38 }, ...[0, 1, 2, 3, 4, 5].map(() => ({ c: new THREE.Vector3(), r: .13 }))],
     tag: $('#t' + (i + 1))
@@ -643,12 +739,12 @@ function syncBalls(dt){
 }
 
 /* ---------------- 게임 흐름 ---------------- */
-const game = { phase: 'start', countT: 0, lastCount: null };
+const game = { phase: 'start', countT: 0, lastCount: null, queue: [], pending: [], asked: 0, endT: 0, cur: null };
 const keys = new Set(), pressedNow = new Set();
 const isDown = list => list.some(k => keys.has(k));
 const pressed = list => list.some(k => pressedNow.has(k));
 
-function startDown(c, auto){ c.state = 'down'; c.auto = auto; c.downT = 0; sfx.whir(); }
+function startDown(c, auto){ c.state = 'down'; c.auto = auto; c.downT = 0; if (QUIZ_ON){ c.tries--; renderScores(); } sfx.whir(); }
 
 function landed(c){
   for (const b of balls){
@@ -698,7 +794,7 @@ function updateClaw(c, dt){
   switch (c.state){
     case 'idle': {
       c.open += (.55 - c.open) * Math.min(1, dt * 4);
-      if (!play) break;
+      if (!play || c.tries <= 0) break;
       const dir = (isDown(c.binds.right) ? 1 : 0) - (isDown(c.binds.left) ? 1 : 0);
       c.x += dir * 3.4 * dt;
       c.timer -= dt;
@@ -755,8 +851,10 @@ function win(b){
   const c = b.dropping, pts = b.gold ? 3 : 1;
   c.score += pts; renderScores();
   c.chute.pulse = 1;
+  c.grabs++;
   popup(c, pts);
   sfx.win(pts > 1);
+  if (QUIZ_ON && game.queue.length) game.pending.push({ c, gold: b.gold });
 }
 
 function popup(c, pts){
@@ -775,6 +873,9 @@ function renderScores(){
   s2.querySelector('b').textContent = String(claws[1]?.score ?? 0).padStart(2, '0');
   s2.classList.toggle('off', G.mode !== 'duo');
   s1.querySelector('small').textContent = G.mode === 'duo' ? 'PLAYER 1' : 'SCORE';
+  claws.forEach((c, k) => {
+    $('#s' + (k + 1) + ' i').textContent = QUIZ_ON ? `기회 ${Math.max(0, c.tries)}번 · 맞힘 ${c.correct}` : (k ? '주황 냥이' : '파랑 냥이');
+  });
 }
 
 function toScreen(v){
@@ -791,8 +892,10 @@ function updateTags(){
     t.classList.toggle('hide', !(game.phase === 'play' || game.phase === 'count'));
     const s = toScreen(_tgt.set(c.x + .62, c.y + .95, 0));
     t.style.transform = `translate(${s.x}px,${s.y}px) translate(0,-50%)`;
-    const left = c.state === 'idle' ? Math.max(0, c.timer) : 0;
-    t.querySelector('.num').textContent = c.state === 'idle' ? Math.ceil(left) : '·';
+    const left = c.state === 'idle' && c.tries > 0 ? Math.max(0, c.timer) : 0;
+    const out = c.tries <= 0 && c.state === 'idle';
+    t.querySelector('.num').textContent = out ? '–' : c.state === 'idle' ? Math.ceil(left) : '·';
+    t.querySelector('.pill').textContent = out ? '기회 끝' : (G.mode === 'duo' ? 'PLAYER ' + (c.i + 1) : (QUIZ_ON ? '기회 ' + c.tries : 'PLAYER 1'));
     t.querySelector('.fg').style.strokeDashoffset = CIRC * (1 - left / TURN);
   }
 }
@@ -810,6 +913,14 @@ function updateGame(dt){
       if (n <= 0){ game.phase = 'play'; for (const c of claws) c.timer = TURN; setTimeout(() => { if (el.textContent === 'GO!') el.className = 'fade'; }, 500); }
     }
   }
+  if (game.phase === 'play' && QUIZ_ON){
+    if (game.pending.length) openQuiz(game.pending.shift());
+    else {
+      const busy = claws.some(c => c.state !== 'idle' || c.held) || balls.some(b => b.dropping && !b.gone);
+      if (!busy && claws.every(c => c.tries <= 0)){ game.endT += dt; if (game.endT > 1) endGame('뽑기 기회를 모두 썼어요'); }
+      else game.endT = 0;
+    }
+  }
   for (const ch of chutes){
     ch.pulse = Math.max(0, ch.pulse - dt * 1.5);
     ch.rimMat.emissiveIntensity = .15 + ch.pulse * 1.2;
@@ -825,11 +936,125 @@ function startGame(mode){
   $('#help').innerHTML = helpHTML(mode);
   $('#help').classList.toggle('hide', helpHidden);
   game.phase = 'count'; game.countT = 3.8; game.lastCount = null;
+  game.queue = QUIZ_ON ? (SET.shuffle ? shuffle(QUIZ.questions.slice()) : QUIZ.questions.slice()) : [];
+  game.pending = []; game.asked = 0; game.endT = 0; game.cur = null;
+  $('#result').classList.add('hide'); $('#quiz').classList.add('hide');
   $('#count').textContent = ''; $('#count').className = '';
+  renderScores();
+}
+function shuffle(a){ for (let i = a.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+
+/* ---------------- 퀴즈 ---------------- */
+const esc = t => String(t ?? '').replace(/[&<>"]/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
+function qType(q){ return q.type || (Array.isArray(q.choices) ? 'choice' : 'open'); }
+function openQuiz({ c, gold }){
+  const q = game.queue.shift(); if (!q) return;
+  game.asked++; game.phase = 'quiz';
+  game.cur = { c, gold, q, type: qType(q), answered: false, revealed: false };
+  const box = $('#qbox');
+  box.className = 'qbox ' + (c.i ? 'p2' : 'p1');
+  box.querySelector('.qwho').textContent = G.mode === 'duo' ? 'PLAYER ' + (c.i + 1) : '도전!';
+  box.querySelector('.qno').textContent = game.asked + '번째 문제';
+  const gt = box.querySelector('.qgold');
+  gt.hidden = !gold; gt.textContent = '황금 냥이 문제 · 맞히면 기회 +' + SET.goldBonusTries;
+  box.querySelector('.qtext').textContent = q.q || '';
+  const img = box.querySelector('.qimg');
+  if (q.image){ img.src = q.image; img.hidden = false; } else { img.hidden = true; img.removeAttribute('src'); }
+  const ch = box.querySelector('.qchoices'); ch.innerHTML = ''; ch.className = 'qchoices';
+  box.querySelector('.qresult').innerHTML = '';
+  const act = box.querySelector('.qactions'); act.innerHTML = '';
+  const cur = game.cur;
+  if (cur.type === 'choice' || cur.type === 'ox'){
+    const opts = cur.type === 'ox' ? ['O', 'X'] : q.choices;
+    if (cur.type === 'ox') ch.classList.add('ox');
+    opts.forEach((o, k) => {
+      const b = document.createElement('button'); b.className = 'qc';
+      b.innerHTML = cur.type === 'ox' ? esc(o) : `<span class="n">${k + 1}</span><span>${esc(o)}</span>`;
+      b.addEventListener('click', () => chooseAnswer(k));
+      ch.appendChild(b);
+    });
+  } else {
+    const b = document.createElement('button'); b.className = 'btn primary'; b.innerHTML = '정답 보기 <kbd>Enter</kbd>';
+    b.addEventListener('click', revealOpen); act.appendChild(b);
+  }
+  $('#quiz').classList.remove('hide');
+  sfx.beep(false);
+}
+function correctIndex(cur){
+  const q = cur.q;
+  if (cur.type === 'ox') return String(q.answer).trim().toUpperCase() === 'X' || q.answer === false ? 1 : 0;
+  if (typeof q.answer === 'number') return q.answer - 1;
+  return q.choices.findIndex(o => String(o).trim() === String(q.answer).trim());
+}
+function chooseAnswer(k){
+  const cur = game.cur; if (!cur || cur.answered) return;
+  const btns = [...document.querySelectorAll('#qbox .qc')];
+  if (k < 0 || k >= btns.length) return;
+  const ok = correctIndex(cur);
+  btns.forEach((b, i) => { b.disabled = true; if (i === ok) b.classList.add('ok'); else if (i === k) b.classList.add('no'); });
+  judge(k === ok);
+}
+function revealOpen(){
+  const cur = game.cur; if (!cur || cur.revealed) return;
+  cur.revealed = true;
+  const box = $('#qbox');
+  box.querySelector('.qchoices').innerHTML = `<div class="qanswer"><small>정답</small>${esc(cur.q.answer)}</div>`;
+  const act = box.querySelector('.qactions'); act.innerHTML = '';
+  const y = document.createElement('button'); y.className = 'btn good'; y.innerHTML = '맞혔어요 <kbd>O</kbd>';
+  const n = document.createElement('button'); n.className = 'btn bad'; n.innerHTML = '틀렸어요 <kbd>X</kbd>';
+  y.addEventListener('click', () => judge(true)); n.addEventListener('click', () => judge(false));
+  act.append(y, n);
+}
+function judge(right){
+  const cur = game.cur; if (!cur || cur.answered) return;
+  cur.answered = true;
+  const c = cur.c, box = $('#qbox');
+  let html;
+  if (right){
+    const bonus = cur.gold ? SET.goldBonusTries : SET.bonusTries;
+    c.tries += bonus; c.correct++;
+    html = `<b class="good">정답! 기회 +${bonus}</b>`;
+    sfx.win(true);
+  } else {
+    const ans = cur.type === 'ox' ? ['O', 'X'][correctIndex(cur)] : cur.type === 'choice' ? (correctIndex(cur) + 1) + '번 ' + (cur.q.choices[correctIndex(cur)] ?? '') : cur.q.answer;
+    html = `<b class="bad">아쉬워요!</b>정답은 <strong>${esc(ans)}</strong> 예요.`;
+    sfx.slip();
+  }
+  if (cur.q.explain) html += `<div>${esc(cur.q.explain)}</div>`;
+  box.querySelector('.qresult').innerHTML = html;
+  const act = box.querySelector('.qactions'); act.innerHTML = '';
+  const go = document.createElement('button'); go.className = 'btn primary'; go.innerHTML = '계속하기 <kbd>Enter</kbd>';
+  go.addEventListener('click', closeQuiz); act.appendChild(go);
+  renderScores();
+}
+function closeQuiz(){
+  if (!game.cur || !game.cur.answered) return;
+  $('#quiz').classList.add('hide');
+  game.cur = null;
+  for (const c of claws) c.timer = Math.max(c.timer, 5);
+  if (!game.queue.length) endGame('문제를 모두 풀었어요');
+  else game.phase = 'play';
+}
+function endGame(reason){
+  game.phase = 'over';
+  $('#quiz').classList.add('hide'); $('#help').classList.add('hide');
+  $('#rreason').textContent = reason;
+  const rank = c => c.correct * 1000 + c.score;
+  const best = Math.max(...claws.map(rank));
+  const tie = claws.length > 1 && claws.every(c => rank(c) === best);
+  $('#rcards').innerHTML = claws.map(c => `
+    <div class="res ${c.i ? 'p2' : 'p1'}">
+      <div class="who">${G.mode === 'duo' ? 'PLAYER ' + (c.i + 1) : 'MY SCORE'}${claws.length > 1 && !tie && rank(c) === best ? '<span class="win">1등</span>' : ''}</div>
+      <b>${c.correct}</b><span>맞힌 문제 · 뽑은 공 ${c.grabs}개 · 점수 ${c.score}</span>
+    </div>`).join('') + (tie ? '' : '');
+  if (tie) $('#rreason').textContent = reason + ' · 무승부예요!';
+  $('#result').classList.remove('hide');
+  sfx.win(true);
 }
 
 function toStart(){
   game.phase = 'start';
+  $('#result').classList.add('hide'); $('#quiz').classList.add('hide'); game.cur = null; game.pending = [];
   $('#start').classList.remove('hide');
   $('#help').classList.add('hide');
   $('#count').textContent = '';
@@ -838,9 +1063,10 @@ function toStart(){
 }
 
 function helpHTML(mode){
-  const common = '<span class="g">꾹 누르면 더 깊이 · 20초 지나면 자동으로 집어요</span>' +
+  const common = (QUIZ_ON ? '<span class="g">퀴즈: <kbd>1</kbd>~<kbd>4</kbd> 또는 <kbd>O</kbd> <kbd>X</kbd> 로 답하기 · <kbd>Enter</kbd> 계속</span>' : '') +
+    '<span class="g">꾹 누르면 더 깊이 · ' + TURN + '초 지나면 자동으로 집어요</span>' +
     '<span class="g"><kbd>M</kbd> 소리 <kbd>Q</kbd> 화질 <kbd>R</kbd> 공 채우기 <kbd>H</kbd> 안내 <kbd>F</kbd> 전체화면 <kbd>ESC</kbd> 처음으로</span>';
-  if (mode === 'duo') return '<span class="g"><span class="l">민트</span> <kbd>←</kbd> <kbd>→</kbd> 이동 · <kbd>SPACE</kbd> 집기</span>' +
+  if (mode === 'duo') return '<span class="g"><span class="l">파랑</span> <kbd>←</kbd> <kbd>→</kbd> 이동 · <kbd>SPACE</kbd> 집기</span>' +
     '<span class="g"><span class="p">주황</span> <kbd>A</kbd> <kbd>D</kbd> 이동 · <kbd>S</kbd> 집기</span>' + common;
   return '<span class="g"><kbd>←</kbd> <kbd>→</kbd> 이동 · <kbd>SPACE</kbd> 집기</span>' + common;
 }
@@ -861,6 +1087,24 @@ addEventListener('keydown', e => {
   if (!e.repeat) pressedNow.add(e.code);
   keys.add(e.code);
   if (e.repeat) return;
+  if (game.phase === 'quiz'){
+    pressedNow.delete(e.code);
+    const cur = game.cur; if (!cur) return;
+    const num = /^(Digit|Numpad)([1-9])$/.exec(e.code);
+    if (e.code === 'Enter' || e.code === 'Space' || e.code === 'NumpadEnter'){ e.preventDefault(); if (cur.answered) closeQuiz(); else if (cur.type === 'open') revealOpen(); }
+    else if (!cur.answered && num && cur.type === 'choice') chooseAnswer(+num[2] - 1);
+    else if (!cur.answered && cur.type === 'ox' && (e.code === 'KeyO' || e.code === 'KeyX')) chooseAnswer(e.code === 'KeyO' ? 0 : 1);
+    else if (!cur.answered && cur.type === 'ox' && num && +num[2] <= 2) chooseAnswer(+num[2] - 1);
+    else if (!cur.answered && cur.type === 'open' && cur.revealed && (e.code === 'KeyO' || e.code === 'KeyX')) judge(e.code === 'KeyO');
+    else if (e.code === 'Escape') toStart();
+    return;
+  }
+  if (game.phase === 'over'){
+    pressedNow.delete(e.code);
+    if (e.code === 'Enter' || e.code === 'Space'){ e.preventDefault(); startGame(G.mode); }
+    else if (e.code === 'Escape') toStart();
+    return;
+  }
   switch (e.code){
     case 'Digit1': case 'Numpad1': if (game.phase === 'start') startGame('solo'); break;
     case 'Digit2': case 'Numpad2': if (game.phase === 'start') startGame('duo'); break;
@@ -880,6 +1124,12 @@ addEventListener('keydown', e => {
 addEventListener('keyup', e => keys.delete(e.code));
 addEventListener('blur', () => keys.clear());
 addEventListener('pointerdown', () => initAudio());
+$('#again').addEventListener('click', e => { e.currentTarget.blur(); startGame(G.mode); });
+$('#home').addEventListener('click', e => { e.currentTarget.blur(); toStart(); });
+if (QUIZ.title){ $('#qtitle').textContent = QUIZ.title; document.title = QUIZ.title; }
+$('#qrule').innerHTML = QUIZ_ON
+  ? `${esc(QUIZ.subtitle || '공을 뽑으면 퀴즈가 나와요')} · 맞히면 뽑기 기회 <b>+${SET.bonusTries}</b> · 처음 기회 <b>${SET.startTries}번</b>`
+  : '';
 document.querySelectorAll('.card').forEach(b => {
   b.addEventListener('click', e => { e.currentTarget.blur(); startGame(b.dataset.mode); });
   b.addEventListener('mouseenter', () => selectCard(b.dataset.mode));
@@ -966,10 +1216,12 @@ function loop(now){
   const dt = Math.min(.033, (now - last) / 1000); last = now;
   if (ready){
     updateGame(dt);
-    for (const c of claws) updateClaw(c, dt);
-    for (const c of claws) syncClaw(c);
-    physics(dt);
-    syncBalls(dt);
+    if (game.phase !== 'quiz' && game.phase !== 'over'){
+      for (const c of claws) updateClaw(c, dt);
+      for (const c of claws) syncClaw(c);
+      physics(dt);
+      syncBalls(dt);
+    }
     updateTags();
     pressedNow.clear();
   }
