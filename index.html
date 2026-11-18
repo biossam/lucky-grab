@@ -815,7 +815,7 @@ function syncBalls(dt){
 }
 
 /* ---------------- 게임 흐름 ---------------- */
-const game = { phase: 'start', countT: 0, lastCount: null, queue: [], pending: [], asked: 0, endT: 0, cur: null, cls: null, turnT: 0 };
+const game = { phase: 'start', countT: 0, lastCount: null, queue: [], pending: [], asked: 0, endT: 0, cur: null, cls: null, turnT: 0, wrong: [] };
 const keys = new Set(), pressedNow = new Set();
 const isDown = list => list.some(k => keys.has(k));
 const pressed = list => list.some(k => pressedNow.has(k));
@@ -932,6 +932,7 @@ function win(b){
   if (p){ const st = stat(p); st.score += pts; st.grabs++; }
   popup(c, pts);
   sfx.win(pts > 1);
+  if (QUIZ_ON && !game.queue.length && game.cls) refillQueue();
   if (QUIZ_ON && game.queue.length) game.pending.push({ c, gold: b.gold, p });
 }
 
@@ -1120,7 +1121,7 @@ function startGame(mode, cls = null){
   $('#help').classList.toggle('hide', helpHidden);
   game.phase = 'count'; game.countT = 3.8; game.lastCount = null;
   game.queue = QUIZ_ON ? (SET.shuffle ? shuffle(QUIZ.questions.slice()) : QUIZ.questions.slice()) : [];
-  game.pending = []; game.asked = 0; game.endT = 0; game.cur = null;
+  game.pending = []; game.asked = 0; game.endT = 0; game.cur = null; game.wrong = []; game.round2 = 0;
   $('#result').classList.add('hide'); $('#quiz').classList.add('hide');
   $('#count').textContent = ''; $('#count').className = '';
   renderScores();
@@ -1211,6 +1212,7 @@ function judge(right){
     sfx.win(true);
   } else {
     const ans = cur.type === 'ox' ? ['O', 'X'][correctIndex(cur)] : cur.type === 'choice' ? (shownIndex(cur) + 1) + '번 ' + (cur.q.choices[correctIndex(cur)] ?? '') : cur.q.answer;
+    if (!game.wrong.includes(cur.q)) game.wrong.push(cur.q);
     html = `<b class="bad">아쉬워요!</b>정답은 <strong>${esc(ans)}</strong> 예요.`;
     sfx.slip();
   }
@@ -1221,13 +1223,21 @@ function judge(right){
   go.addEventListener('click', closeQuiz); act.appendChild(go);
   renderScores();
 }
+// 우리 반 모드: 문제를 다 쓰면 틀린 문제부터 다시 섞어서 내요
+function refillQueue(){
+  const wrong = game.wrong.splice(0);
+  const rest = QUIZ.questions.filter(q => !wrong.includes(q));
+  game.queue = shuffle(wrong).concat(shuffle(rest.slice()));
+  game.round2 = (game.round2 || 0) + 1;
+  toast('문제를 한 바퀴 다 풀었어요 · 틀린 문제부터 다시 나와요');
+}
 function closeQuiz(){
   if (!game.cur || !game.cur.answered) return;
   $('#quiz').classList.add('hide');
   game.cur = null;
   for (const c of claws) c.timer = Math.max(c.timer, 5);
-  if (!game.queue.length) endGame('문제를 모두 풀었어요');
-  else game.phase = 'play';
+  if (!game.queue.length && !game.cls) endGame('문제를 모두 풀었어요');
+  else game.phase = game.phase === 'over' ? 'over' : 'play';
 }
 function endGame(reason){
   game.phase = 'over';

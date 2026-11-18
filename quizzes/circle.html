@@ -293,7 +293,8 @@ kbd{font-family:var(--body);font-weight:700;background:#fff;border:1px solid var
     "bonusTries": 2,
     "goldBonusTries": 3,
     "turnSeconds": 20,
-    "shuffle": true, "shuffleChoices": true
+    "shuffle": true,
+    "shuffleChoices": true
   },
   "questions": [
     {
@@ -426,6 +427,166 @@ kbd{font-family:var(--body);font-weight:700;background:#fff;border:1px solid var
       "q": "넓이가 78.5cm²인 원의 반지름은 몇 cm일까요?",
       "answer": "5cm",
       "explain": "78.5 ÷ 3.14 = 25 → 반지름 × 반지름 = 25이므로 반지름은 5cm예요."
+    },
+    {
+      "type": "choice",
+      "q": "원의 중심을 지나도록 원 위의 두 점을 이은 선분을 무엇이라고 할까요?",
+      "choices": [
+        "반지름",
+        "지름",
+        "원주",
+        "중심"
+      ],
+      "answer": 2
+    },
+    {
+      "type": "ox",
+      "q": "한 원에서 지름은 반지름의 2배이다.",
+      "answer": "O"
+    },
+    {
+      "type": "choice",
+      "q": "원주는 지름의 약 몇 배일까요?",
+      "choices": [
+        "약 2배",
+        "약 3배",
+        "약 4배",
+        "약 6배"
+      ],
+      "answer": 2,
+      "explain": "원주율이 약 3.14라서 원주는 지름의 약 3배예요."
+    },
+    {
+      "type": "choice",
+      "q": "반지름이 6cm인 원의 원주는 몇 cm일까요?",
+      "choices": [
+        "18.84cm",
+        "37.68cm",
+        "113.04cm",
+        "75.36cm"
+      ],
+      "answer": 2,
+      "explain": "지름은 12cm예요. 12 × 3.14 = 37.68(cm)"
+    },
+    {
+      "type": "choice",
+      "q": "지름이 20cm인 원의 원주는 몇 cm일까요?",
+      "choices": [
+        "31.4cm",
+        "62.8cm",
+        "125.6cm",
+        "314cm"
+      ],
+      "answer": 2,
+      "explain": "20 × 3.14 = 62.8(cm)"
+    },
+    {
+      "type": "open",
+      "q": "원주가 31.4cm인 원의 반지름은 몇 cm일까요?",
+      "answer": "5cm",
+      "explain": "지름 = 31.4 ÷ 3.14 = 10(cm)이니까 반지름은 10 ÷ 2 = 5(cm)예요."
+    },
+    {
+      "type": "choice",
+      "q": "반지름이 1.5cm인 원의 원주는 몇 cm일까요?",
+      "choices": [
+        "4.71cm",
+        "9.42cm",
+        "7.065cm",
+        "18.84cm"
+      ],
+      "answer": 2,
+      "explain": "지름은 3cm예요. 3 × 3.14 = 9.42(cm)"
+    },
+    {
+      "type": "choice",
+      "q": "지름이 60cm인 자전거 바퀴가 10바퀴 굴러가면 몇 cm를 갈까요?",
+      "choices": [
+        "188.4cm",
+        "1884cm",
+        "3768cm",
+        "942cm"
+      ],
+      "answer": 2,
+      "explain": "한 바퀴는 60 × 3.14 = 188.4(cm), 10바퀴는 188.4 × 10 = 1884(cm)예요."
+    },
+    {
+      "type": "open",
+      "q": "둘레가 942m인 원 모양 호수의 지름은 몇 m일까요?",
+      "answer": "300m",
+      "explain": "지름 = 942 ÷ 3.14 = 300(m)"
+    },
+    {
+      "type": "choice",
+      "q": "반지름이 4cm인 원의 넓이는 몇 cm²일까요?",
+      "choices": [
+        "25.12cm²",
+        "50.24cm²",
+        "12.56cm²",
+        "200.96cm²"
+      ],
+      "answer": 2,
+      "explain": "4 × 4 × 3.14 = 50.24(cm²)"
+    },
+    {
+      "type": "choice",
+      "q": "지름이 20cm인 원의 넓이는 몇 cm²일까요?",
+      "choices": [
+        "314cm²",
+        "1256cm²",
+        "62.8cm²",
+        "31.4cm²"
+      ],
+      "answer": 1,
+      "explain": "반지름은 10cm예요. 10 × 10 × 3.14 = 314(cm²)"
+    },
+    {
+      "type": "choice",
+      "q": "반지름이 7cm인 원의 넓이는 몇 cm²일까요?",
+      "choices": [
+        "43.96cm²",
+        "153.86cm²",
+        "21.98cm²",
+        "615.44cm²"
+      ],
+      "answer": 2,
+      "explain": "7 × 7 × 3.14 = 153.86(cm²)"
+    },
+    {
+      "type": "open",
+      "q": "넓이가 12.56cm²인 원의 반지름은 몇 cm일까요?",
+      "answer": "2cm",
+      "explain": "12.56 ÷ 3.14 = 4 → 반지름 × 반지름 = 4이므로 반지름은 2cm예요."
+    },
+    {
+      "type": "choice",
+      "q": "반지름이 10cm인 반원의 넓이는 몇 cm²일까요?",
+      "choices": [
+        "314cm²",
+        "157cm²",
+        "78.5cm²",
+        "31.4cm²"
+      ],
+      "answer": 2,
+      "explain": "원의 넓이 10 × 10 × 3.14 = 314(cm²)의 절반이니까 157cm²예요."
+    },
+    {
+      "type": "ox",
+      "q": "반지름이 3배가 되면 원의 넓이는 9배가 된다.",
+      "answer": "O",
+      "explain": "반지름 × 반지름이라서 3 × 3 = 9배가 돼요."
+    },
+    {
+      "type": "choice",
+      "q": "반지름이 5m인 원 모양 꽃밭의 넓이는 몇 m²일까요?",
+      "choices": [
+        "31.4m²",
+        "78.5m²",
+        "15.7m²",
+        "314m²"
+      ],
+      "answer": 2,
+      "explain": "5 × 5 × 3.14 = 78.5(m²)"
     }
   ]
 }
@@ -944,7 +1105,7 @@ function syncBalls(dt){
 }
 
 /* ---------------- 게임 흐름 ---------------- */
-const game = { phase: 'start', countT: 0, lastCount: null, queue: [], pending: [], asked: 0, endT: 0, cur: null, cls: null, turnT: 0 };
+const game = { phase: 'start', countT: 0, lastCount: null, queue: [], pending: [], asked: 0, endT: 0, cur: null, cls: null, turnT: 0, wrong: [] };
 const keys = new Set(), pressedNow = new Set();
 const isDown = list => list.some(k => keys.has(k));
 const pressed = list => list.some(k => pressedNow.has(k));
@@ -1061,6 +1222,7 @@ function win(b){
   if (p){ const st = stat(p); st.score += pts; st.grabs++; }
   popup(c, pts);
   sfx.win(pts > 1);
+  if (QUIZ_ON && !game.queue.length && game.cls) refillQueue();
   if (QUIZ_ON && game.queue.length) game.pending.push({ c, gold: b.gold, p });
 }
 
@@ -1249,7 +1411,7 @@ function startGame(mode, cls = null){
   $('#help').classList.toggle('hide', helpHidden);
   game.phase = 'count'; game.countT = 3.8; game.lastCount = null;
   game.queue = QUIZ_ON ? (SET.shuffle ? shuffle(QUIZ.questions.slice()) : QUIZ.questions.slice()) : [];
-  game.pending = []; game.asked = 0; game.endT = 0; game.cur = null;
+  game.pending = []; game.asked = 0; game.endT = 0; game.cur = null; game.wrong = []; game.round2 = 0;
   $('#result').classList.add('hide'); $('#quiz').classList.add('hide');
   $('#count').textContent = ''; $('#count').className = '';
   renderScores();
@@ -1340,6 +1502,7 @@ function judge(right){
     sfx.win(true);
   } else {
     const ans = cur.type === 'ox' ? ['O', 'X'][correctIndex(cur)] : cur.type === 'choice' ? (shownIndex(cur) + 1) + '번 ' + (cur.q.choices[correctIndex(cur)] ?? '') : cur.q.answer;
+    if (!game.wrong.includes(cur.q)) game.wrong.push(cur.q);
     html = `<b class="bad">아쉬워요!</b>정답은 <strong>${esc(ans)}</strong> 예요.`;
     sfx.slip();
   }
@@ -1350,13 +1513,21 @@ function judge(right){
   go.addEventListener('click', closeQuiz); act.appendChild(go);
   renderScores();
 }
+// 우리 반 모드: 문제를 다 쓰면 틀린 문제부터 다시 섞어서 내요
+function refillQueue(){
+  const wrong = game.wrong.splice(0);
+  const rest = QUIZ.questions.filter(q => !wrong.includes(q));
+  game.queue = shuffle(wrong).concat(shuffle(rest.slice()));
+  game.round2 = (game.round2 || 0) + 1;
+  toast('문제를 한 바퀴 다 풀었어요 · 틀린 문제부터 다시 나와요');
+}
 function closeQuiz(){
   if (!game.cur || !game.cur.answered) return;
   $('#quiz').classList.add('hide');
   game.cur = null;
   for (const c of claws) c.timer = Math.max(c.timer, 5);
-  if (!game.queue.length) endGame('문제를 모두 풀었어요');
-  else game.phase = 'play';
+  if (!game.queue.length && !game.cls) endGame('문제를 모두 풀었어요');
+  else game.phase = game.phase === 'over' ? 'over' : 'play';
 }
 function endGame(reason){
   game.phase = 'over';
