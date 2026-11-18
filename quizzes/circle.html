@@ -146,6 +146,38 @@ kbd{font-family:var(--body);font-weight:700;background:#fff;border:1px solid var
 .rule{margin:-6px 0 22px;font-size:15px;color:var(--ink2);text-align:center}
 .rule b{color:var(--accent)}
 
+/* 우리 반 */
+.card.p3{--c:#8a63d2;--cb:#f4f0fd;--cl:#cfc2f2}
+.res.p3{--c:#8a63d2;--cl:#cfc2f2}
+.setup{width:min(580px,94vw);max-height:92vh;overflow:auto;background:#fff;border:1px solid var(--line);border-top:6px solid #8a63d2;
+  border-radius:var(--radius);padding:20px 28px 22px;text-align:left}
+.setup .kicker{color:#8a63d2}
+.setup h2{font-family:var(--display);font-weight:700;font-size:46px;margin:0 0 6px;line-height:1.1}
+.f{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 0;border-bottom:1px solid var(--line);font-size:15px}
+.f>span:first-child{width:110px;font-weight:700;color:var(--ink2)}
+.f input{font:inherit;font-size:16px;padding:6px 10px;border:1px solid var(--line);border-radius:var(--radius);color:var(--ink);background:#fff}
+.f input[type=number]{width:84px}
+.f input[type=text]{flex:1;min-width:170px}
+.f input:focus{outline:2px solid #8a63d2;outline-offset:1px}
+.f small{width:100%;padding-left:120px;color:var(--muted);font-size:12px;margin-top:-4px}
+.seg{display:flex;gap:6px;flex-wrap:wrap}
+.seg label{display:flex;align-items:center;gap:6px;padding:6px 12px;border:1px solid var(--line);border-radius:var(--radius);cursor:pointer}
+.seg label:has(input:checked){border-color:#8a63d2;background:#f4f0fd;font-weight:700}
+.seg input{accent-color:#8a63d2;margin:0}
+[hidden]{display:none!important}
+.note{min-height:1.4em;color:#7a3550;font-size:14px;margin:10px 0 0;font-weight:700}
+.privacy{font-size:12px;color:var(--muted);margin:12px 0 0}
+.setup .res-actions{margin-top:12px}
+#turn{position:fixed;inset:0;display:grid;place-items:center;pointer-events:none;z-index:6}
+#turn.hide{display:none}
+#turn div{background:#fff;border:1px solid var(--line);border-top:6px solid #8a63d2;border-radius:var(--radius);padding:16px 48px 18px;text-align:center;
+  animation:qin .35s cubic-bezier(.25,1,.5,1)}
+#turn small{display:block;font-weight:700;letter-spacing:.15em;color:#8a63d2;font-size:14px}
+#turn b{display:block;font-family:var(--display);font-weight:700;font-size:min(22vw,120px);line-height:1.05}
+.res-list{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;max-width:880px;margin:0 auto 22px}
+.res-list span{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:3px 10px;font-size:14px;color:var(--ink2)}
+.res-list span b{font-family:var(--display);font-size:22px;margin-left:5px;color:var(--ink)}
+
 #loading{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;background:var(--bg);z-index:30;transition:opacity .4s}
 #loading b{font-family:var(--display);font-weight:700;font-size:52px}
 #loading small{color:var(--muted);font-size:15px;text-align:center;padding:0 20px}
@@ -189,9 +221,38 @@ kbd{font-family:var(--body);font-weight:700;background:#fff;border:1px solid var
   <div class="cards">
     <button class="card p1" data-mode="solo"><b>1</b><span><strong>PLAYER</strong><small>혼자 · 세로 화면</small></span></button>
     <button class="card p2" data-mode="duo"><b>2</b><span><strong>PLAYERS</strong><small>둘이 · 가로 화면</small></span></button>
+    <button class="card p3" data-mode="class"><b>3</b><span><strong>우리 반</strong><small>학급 설정 · 차례대로</small></span></button>
   </div>
-  <div class="hint">숫자 <kbd>1</kbd> <kbd>2</kbd> 를 눌러도 돼요 · 화면을 누르거나 키를 누르면 음악이 나와요</div>
+  <div class="hint">숫자 <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> 을 눌러도 돼요 · 화면을 누르거나 키를 누르면 음악이 나와요</div>
 </div>
+
+<div class="overlay hide" id="setup">
+  <form class="setup" id="setupForm" autocomplete="off">
+    <div class="kicker">CLASS SETTING</div>
+    <h2>우리 반 설정</h2>
+    <label class="f"><span>학급 이름</span><input type="text" id="cName" maxlength="20" placeholder="예: 6학년 3반"></label>
+    <div class="f"><span>진행 방식</span><div class="seg">
+      <label><input type="radio" name="cKind" value="solo" checked> 개인 차례</label>
+      <label><input type="radio" name="cKind" value="group"> 모둠 대결</label></div></div>
+    <div id="kSolo">
+      <label class="f"><span>인원수</span><input type="number" id="cCount" min="1" max="40" value="25"> 명</label>
+      <label class="f"><span>빠진 번호</span><input type="text" id="cSkip" placeholder="예: 16, 21" inputmode="numeric"><small>전학 가거나 비어 있는 번호를 쉼표로 적어요</small></label>
+      <div class="f"><span>순서</span><div class="seg">
+        <label><input type="radio" name="cOrder" value="seq" checked> 번호 순</label>
+        <label><input type="radio" name="cOrder" value="rand"> 무작위</label></div></div>
+    </div>
+    <div id="kGroup" hidden>
+      <label class="f"><span>모둠 수</span><input type="number" id="cGroups" min="2" max="8" value="4"> 모둠</label>
+      <label class="f"><span>바퀴 수</span><input type="number" id="cRounds" min="1" max="10" value="3"> 바퀴</label>
+    </div>
+    <label class="f"><span>차례마다 기회</span><input type="number" id="cTries" min="1" max="10" value="2"> 번<small>퀴즈를 맞히면 그 차례에 기회가 더 생겨요</small></label>
+    <p class="note" id="cNote"></p>
+    <div class="res-actions"><button type="submit" class="btn primary">시작하기 <kbd>Enter</kbd></button><button type="button" class="btn" id="cCancel">취소 <kbd>ESC</kbd></button></div>
+    <p class="privacy">이름은 받지 않고 번호만 써요. 설정은 이 컴퓨터의 브라우저에만 저장돼요.</p>
+  </form>
+</div>
+
+<div id="turn" class="hide"><div><small>차례</small><b></b></div></div>
 
 <div class="quiz hide" id="quiz"><div class="qbox" id="qbox">
   <div class="qhead"><span class="qwho"></span><span class="qno"></span><span class="qgold" hidden></span></div>
@@ -206,6 +267,7 @@ kbd{font-family:var(--body);font-weight:700;background:#fff;border:1px solid var
   <h1>게임 끝!</h1>
   <div class="rule" id="rreason"></div>
   <div class="res-cards" id="rcards"></div>
+  <div class="res-list" id="rlist"></div>
   <div class="res-actions"><button class="btn primary" id="again">다시 하기 <kbd>Enter</kbd></button><button class="btn" id="home">처음으로 <kbd>ESC</kbd></button></div>
 </div>
 
@@ -874,12 +936,12 @@ function syncBalls(dt){
 }
 
 /* ---------------- 게임 흐름 ---------------- */
-const game = { phase: 'start', countT: 0, lastCount: null, queue: [], pending: [], asked: 0, endT: 0, cur: null };
+const game = { phase: 'start', countT: 0, lastCount: null, queue: [], pending: [], asked: 0, endT: 0, cur: null, cls: null, turnT: 0 };
 const keys = new Set(), pressedNow = new Set();
 const isDown = list => list.some(k => keys.has(k));
 const pressed = list => list.some(k => pressedNow.has(k));
 
-function startDown(c, auto){ c.state = 'down'; c.auto = auto; c.downT = 0; if (QUIZ_ON){ c.tries--; renderScores(); } sfx.whir(); }
+function startDown(c, auto){ c.state = 'down'; c.auto = auto; c.downT = 0; if (QUIZ_ON || game.cls){ c.tries--; renderScores(); } sfx.whir(); }
 
 function landed(c){
   for (const b of balls){
@@ -987,9 +1049,11 @@ function win(b){
   c.score += pts; renderScores();
   c.chute.pulse = 1;
   c.grabs++;
+  const p = curP();
+  if (p){ const st = stat(p); st.score += pts; st.grabs++; }
   popup(c, pts);
   sfx.win(pts > 1);
-  if (QUIZ_ON && game.queue.length) game.pending.push({ c, gold: b.gold });
+  if (QUIZ_ON && game.queue.length) game.pending.push({ c, gold: b.gold, p });
 }
 
 function popup(c, pts){
@@ -1004,6 +1068,25 @@ function popup(c, pts){
 
 function renderScores(){
   const s1 = $('#s1'), s2 = $('#s2');
+  if (game.cls){
+    const k = game.cls, p = curP(), st = stat(p), c = claws[0];
+    s2.classList.remove('off');
+    s1.querySelector('small').textContent = k.cfg.name || '우리 반';
+    s1.querySelector('b').textContent = p.label;
+    s1.querySelector('i').textContent = `기회 ${Math.max(0, c ? c.tries : 0)}번 · 맞힘 ${st.correct}`;
+    if (k.cfg.kind === 'group'){
+      s2.querySelector('small').textContent = 'ROUND';
+      s2.querySelector('b').textContent = `${k.round + 1}/${k.cfg.rounds}`;
+      s2.querySelector('i').textContent = k.ids.map(g => `${g.label} ${stat(g).correct}`).join(' · ');
+    } else {
+      const nx = k.ids[k.idx + 1];
+      s2.querySelector('small').textContent = '다음 차례';
+      s2.querySelector('b').textContent = nx ? nx.label : '–';
+      s2.querySelector('i').textContent = `남은 ${k.ids.length - k.idx - 1}명`;
+    }
+    return;
+  }
+  s2.querySelector('small').textContent = 'PLAYER 2';
   s1.querySelector('b').textContent = String(claws[0]?.score ?? 0).padStart(2, '0');
   s2.querySelector('b').textContent = String(claws[1]?.score ?? 0).padStart(2, '0');
   s2.classList.toggle('off', G.mode !== 'duo');
@@ -1024,13 +1107,13 @@ function updateTags(){
   for (const id of ['#t1', '#t2']){ const t = $(id); if (!claws.some(c => c.tag === t)) t.classList.add('hide'); }
   for (const c of claws){
     const t = c.tag;
-    t.classList.toggle('hide', !(game.phase === 'play' || game.phase === 'count'));
+    t.classList.toggle('hide', !(game.phase === 'play' || game.phase === 'count' || game.phase === 'turn'));
     const s = toScreen(_tgt.set(c.x + .62, c.y + .95, 0));
     t.style.transform = `translate(${s.x}px,${s.y}px) translate(0,-50%)`;
     const left = c.state === 'idle' && c.tries > 0 ? Math.max(0, c.timer) : 0;
     const out = c.tries <= 0 && c.state === 'idle';
     t.querySelector('.num').textContent = out ? '–' : c.state === 'idle' ? Math.ceil(left) : '·';
-    t.querySelector('.pill').textContent = out ? '기회 끝' : (G.mode === 'duo' ? 'PLAYER ' + (c.i + 1) : (QUIZ_ON ? '기회 ' + c.tries : 'PLAYER 1'));
+    t.querySelector('.pill').textContent = out ? '기회 끝' : game.cls ? curP().label + ' · 기회 ' + c.tries : (G.mode === 'duo' ? 'PLAYER ' + (c.i + 1) : (QUIZ_ON ? '기회 ' + c.tries : 'PLAYER 1'));
     t.querySelector('.fg').style.strokeDashoffset = CIRC * (1 - left / TURN);
   }
 }
@@ -1045,14 +1128,20 @@ function updateGame(dt){
       const el = $('#count'); el.textContent = label; el.className = ''; void el.offsetWidth; el.className = 'anim';
       el.style.color = n > 0 ? '#0b0b45' : '#3a9bfa';
       sfx.beep(n <= 0);
-      if (n <= 0){ game.phase = 'play'; for (const c of claws) c.timer = TURN; setTimeout(() => { if (el.textContent === 'GO!') el.className = 'fade'; }, 500); }
+      if (n <= 0){ game.phase = 'play'; for (const c of claws) c.timer = TURN; if (game.cls) showTurn(); setTimeout(() => { if (el.textContent === 'GO!') el.className = 'fade'; }, 500); }
     }
   }
-  if (game.phase === 'play' && QUIZ_ON){
+  if (game.phase === 'turn'){
+    game.turnT -= dt;
+    if (game.turnT <= 0){ $('#turn').classList.add('hide'); game.phase = 'play'; for (const c of claws) c.timer = TURN; }
+  }
+  if (game.phase === 'play' && (QUIZ_ON || game.cls)){
     if (game.pending.length) openQuiz(game.pending.shift());
     else {
-      const busy = claws.some(c => c.state !== 'idle' || c.held) || balls.some(b => b.dropping && !b.gone);
-      if (!busy && claws.every(c => c.tries <= 0)){ game.endT += dt; if (game.endT > 1) endGame('뽑기 기회를 모두 썼어요'); }
+      if (!isBusy() && claws.every(c => c.tries <= 0)){
+        game.endT += dt;
+        if (game.endT > 1){ game.endT = 0; if (game.cls) nextTurn(); else endGame('뽑기 기회를 모두 썼어요'); }
+      }
       else game.endT = 0;
     }
   }
@@ -1062,13 +1151,92 @@ function updateGame(dt){
   }
 }
 
-function startGame(mode){
+function isBusy(){ return claws.some(c => c.state !== 'idle' || c.held) || balls.some(b => b.dropping && !b.gone) || game.pending.length > 0; }
+
+/* ---------------- 우리 반 (개인 차례 · 모둠 대결) ---------------- */
+const CLS_KEY = 'luckygrab-class-v1';
+function loadCls(){ try { return JSON.parse(localStorage.getItem(CLS_KEY) || '{}') || {}; } catch (e) { return {}; } }
+function saveCls(v){ try { localStorage.setItem(CLS_KEY, JSON.stringify(v)); } catch (e) {} }
+function curP(){ const k = game.cls; return k ? k.ids[k.idx] : null; }
+function stat(p){ return p ? game.cls.stats.get(p.id) : null; }
+function makeCls(cfg){
+  let ids;
+  if (cfg.kind === 'group') ids = Array.from({ length: cfg.groups }, (_, i) => ({ id: i + 1, label: (i + 1) + '모둠' }));
+  else {
+    const nums = [];
+    for (let i = 1; i <= cfg.count; i++) if (!cfg.skip.includes(i)) nums.push(i);
+    if (cfg.order === 'rand') shuffle(nums);
+    ids = nums.map(n => ({ id: n, label: n + '번' }));
+  }
+  return { cfg, ids, idx: 0, round: 0, stats: new Map(ids.map(p => [p.id, { correct: 0, score: 0, grabs: 0 }])) };
+}
+function openSetup(){
+  const v = loadCls();
+  $('#cName').value = typeof v.name === 'string' ? v.name.slice(0, 20) : '';
+  $('#cCount').value = num(v.count, 25, 1, 40);
+  $('#cSkip').value = Array.isArray(v.skip) ? v.skip.filter(Number.isInteger).join(', ') : '';
+  $('#cGroups').value = num(v.groups, 4, 2, 8);
+  $('#cRounds').value = num(v.rounds, 3, 1, 10);
+  $('#cTries').value = num(v.tries, 2, 1, 10);
+  document.querySelector(`input[name=cKind][value=${v.kind === 'group' ? 'group' : 'solo'}]`).checked = true;
+  document.querySelector(`input[name=cOrder][value=${v.order === 'rand' ? 'rand' : 'seq'}]`).checked = true;
+  syncKind(); $('#cNote').textContent = '';
+  game.phase = 'setup';
+  $('#start').classList.add('hide'); $('#setup').classList.remove('hide');
+  setTimeout(() => $('#cCount').focus(), 50);
+}
+function syncKind(){
+  const g = document.querySelector('input[name=cKind]:checked').value === 'group';
+  $('#kSolo').hidden = g; $('#kGroup').hidden = !g;
+}
+function closeSetup(){ $('#setup').classList.add('hide'); toStart(); }
+function readSetup(){
+  const kind = document.querySelector('input[name=cKind]:checked').value === 'group' ? 'group' : 'solo';
+  const cfg = {
+    kind, name: $('#cName').value.trim().slice(0, 20),
+    count: num($('#cCount').value, 25, 1, 40),
+    order: document.querySelector('input[name=cOrder]:checked').value === 'rand' ? 'rand' : 'seq',
+    groups: num($('#cGroups').value, 4, 2, 8), rounds: num($('#cRounds').value, 3, 1, 10),
+    tries: num($('#cTries').value, 2, 1, 10)
+  };
+  cfg.skip = [...new Set(($('#cSkip').value.match(/\d+/g) || []).map(Number).filter(n => n >= 1 && n <= cfg.count))].sort((a, b) => a - b);
+  if (kind === 'solo' && cfg.skip.length >= cfg.count){ $('#cNote').textContent = '남는 번호가 없어요. 인원수나 빠진 번호를 확인해 주세요.'; return null; }
+  return cfg;
+}
+function startClass(){
+  const cfg = readSetup(); if (!cfg) return;
+  saveCls(cfg);
+  $('#setup').classList.add('hide');
+  startGame('solo', makeCls(cfg));
+}
+function showTurn(){
+  const k = game.cls, p = curP();
+  $('#turn small').textContent = k.cfg.kind === 'group' ? `${k.round + 1}바퀴째 · 차례` : `${k.idx + 1}/${k.ids.length} · 차례`;
+  $('#turn b').textContent = p.label;
+  $('#turn').classList.remove('hide');
+  game.phase = 'turn'; game.turnT = 1.6;
+  renderScores(); sfx.beep(false);
+}
+function nextTurn(){
+  const k = game.cls; if (!k) return;
+  k.idx++;
+  if (k.idx >= k.ids.length){
+    if (k.cfg.kind === 'group' && k.round + 1 < k.cfg.rounds){ k.round++; k.idx = 0; }
+    else { k.idx = k.ids.length - 1; return endGame(k.cfg.kind === 'group' ? '모든 바퀴가 끝났어요' : '모두 한 번씩 했어요'); }
+  }
+  for (const c of claws){ c.tries = k.cfg.tries; c.timer = TURN; }
+  showTurn();
+}
+
+function startGame(mode, cls = null){
   initAudio();
-  try { history.replaceState(null, '', '#' + mode); } catch (e) {}
+  game.cls = cls;
+  try { history.replaceState(null, '', '#' + (cls ? 'class' : mode)); } catch (e) {}
   buildWorld(mode);
+  if (cls) for (const c of claws) c.tries = cls.cfg.tries;
   renderScores();
   $('#start').classList.add('hide');
-  $('#help').innerHTML = helpHTML(mode);
+  $('#help').innerHTML = helpHTML(cls ? 'class' : mode);
   $('#help').classList.toggle('hide', helpHidden);
   game.phase = 'count'; game.countT = 3.8; game.lastCount = null;
   game.queue = QUIZ_ON ? (SET.shuffle ? shuffle(QUIZ.questions.slice()) : QUIZ.questions.slice()) : [];
@@ -1082,13 +1250,13 @@ function shuffle(a){ for (let i = a.length - 1; i > 0; i--){ const j = Math.floo
 /* ---------------- 퀴즈 ---------------- */
 const esc = t => String(t ?? '').replace(/[&<>"]/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
 function qType(q){ return q.type || (Array.isArray(q.choices) ? 'choice' : 'open'); }
-function openQuiz({ c, gold }){
+function openQuiz({ c, gold, p }){
   const q = game.queue.shift(); if (!q) return;
   game.asked++; game.phase = 'quiz';
-  game.cur = { c, gold, q, type: qType(q), answered: false, revealed: false };
+  game.cur = { c, gold, p, q, type: qType(q), answered: false, revealed: false };
   const box = $('#qbox');
   box.className = 'qbox ' + (c.i ? 'p2' : 'p1');
-  box.querySelector('.qwho').textContent = G.mode === 'duo' ? 'PLAYER ' + (c.i + 1) : '도전!';
+  box.querySelector('.qwho').textContent = p ? p.label : G.mode === 'duo' ? 'PLAYER ' + (c.i + 1) : '도전!';
   box.querySelector('.qno').textContent = game.asked + '번째 문제';
   const gt = box.querySelector('.qgold');
   gt.hidden = !gold; gt.textContent = '황금 냥이 문제 · 맞히면 기회 +' + SET.goldBonusTries;
@@ -1153,6 +1321,7 @@ function judge(right){
   if (right){
     const bonus = cur.gold ? SET.goldBonusTries : SET.bonusTries;
     c.tries += bonus; c.correct++;
+    if (cur.p) stat(cur.p).correct++;
     html = `<b class="good">정답! 기회 +${bonus}</b>`;
     sfx.win(true);
   } else {
@@ -1177,8 +1346,27 @@ function closeQuiz(){
 }
 function endGame(reason){
   game.phase = 'over';
-  $('#quiz').classList.add('hide'); $('#help').classList.add('hide');
+  $('#quiz').classList.add('hide'); $('#help').classList.add('hide'); $('#turn').classList.add('hide');
   $('#rreason').textContent = reason;
+  $('#rlist').innerHTML = '';
+  if (game.cls){
+    const k = game.cls, rk = p => stat(p).correct * 1000 + stat(p).score;
+    const sorted = k.ids.slice().sort((a, b) => rk(b) - rk(a));
+    const best = rk(sorted[0]);
+    const card = (p, top) => `<div class="res p3"><div class="who">${esc(p.label)}${top ? '<span class="win">1등</span>' : ''}</div>
+      <b>${stat(p).correct}</b><span>맞힌 문제 · 뽑은 공 ${stat(p).grabs}개 · 점수 ${stat(p).score}</span></div>`;
+    const tops = sorted.filter(p => rk(p) === best && best > 0);
+    $('#rreason').textContent = (k.cfg.name ? k.cfg.name + ' · ' : '') + reason + (tops.length > 1 ? ' · 공동 1등이 있어요!' : '');
+    if (k.cfg.kind === 'group'){
+      $('#rcards').innerHTML = k.ids.map(p => card(p, best > 0 && rk(p) === best)).join('');
+    } else {
+      $('#rcards').innerHTML = sorted.slice(0, 3).filter(p => rk(p) > 0).map(p => card(p, rk(p) === best)).join('');
+      $('#rlist').innerHTML = k.ids.slice().sort((a, b) => a.id - b.id).map(p => `<span>${esc(p.label)}<b>${stat(p).correct}</b></span>`).join('');
+    }
+    $('#result').classList.remove('hide');
+    sfx.win(true);
+    return;
+  }
   const rank = c => c.correct * 1000 + c.score;
   const best = Math.max(...claws.map(rank));
   const tie = claws.length > 1 && claws.every(c => rank(c) === best);
@@ -1193,7 +1381,8 @@ function endGame(reason){
 }
 
 function toStart(){
-  game.phase = 'start';
+  game.phase = 'start'; game.cls = null;
+  $('#setup').classList.add('hide'); $('#turn').classList.add('hide');
   $('#result').classList.add('hide'); $('#quiz').classList.add('hide'); game.cur = null; game.pending = [];
   $('#start').classList.remove('hide');
   $('#help').classList.add('hide');
@@ -1206,6 +1395,7 @@ function helpHTML(mode){
   const common = (QUIZ_ON ? '<span class="g">퀴즈: <kbd>1</kbd>~<kbd>4</kbd> 또는 <kbd>O</kbd> <kbd>X</kbd> 로 답하기 · <kbd>Enter</kbd> 계속</span>' : '') +
     '<span class="g">꾹 누르면 더 깊이 · ' + TURN + '초 지나면 자동으로 집어요</span>' +
     '<span class="g"><kbd>M</kbd> 소리 <kbd>Q</kbd> 화질 <kbd>R</kbd> 공 채우기 <kbd>H</kbd> 안내 <kbd>F</kbd> 전체화면 <kbd>ESC</kbd> 처음으로</span>';
+  if (mode === 'class') return '<span class="g"><kbd>←</kbd> <kbd>→</kbd> 이동 · <kbd>SPACE</kbd> 집기 · <kbd>N</kbd> 다음 사람(결석·건너뛰기)</span>' + common;
   if (mode === 'duo') return '<span class="g"><span class="l">파랑</span> <kbd>←</kbd> <kbd>→</kbd> 이동 · <kbd>SPACE</kbd> 집기</span>' +
     '<span class="g"><span class="p">주황</span> <kbd>A</kbd> <kbd>D</kbd> 이동 · <kbd>S</kbd> 집기</span>' + common;
   return '<span class="g"><kbd>←</kbd> <kbd>→</kbd> 이동 · <kbd>SPACE</kbd> 집기</span>' + common;
@@ -1222,6 +1412,10 @@ function toast(msg){ const t = $('#toast'); t.textContent = msg; t.classList.add
 let helpHidden = false;
 const GAME_KEYS = new Set(['Space', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown']);
 addEventListener('keydown', e => {
+  if (game.phase === 'setup'){
+    if (e.code === 'Escape') closeSetup();
+    return;
+  }
   if (GAME_KEYS.has(e.code)) e.preventDefault();
   initAudio();
   if (!e.repeat) pressedNow.add(e.code);
@@ -1241,13 +1435,17 @@ addEventListener('keydown', e => {
   }
   if (game.phase === 'over'){
     pressedNow.delete(e.code);
-    if (e.code === 'Enter' || e.code === 'Space'){ e.preventDefault(); startGame(G.mode); }
+    if (e.code === 'Enter' || e.code === 'Space'){ e.preventDefault(); again(); }
     else if (e.code === 'Escape') toStart();
     return;
   }
   switch (e.code){
     case 'Digit1': case 'Numpad1': if (game.phase === 'start') startGame('solo'); break;
     case 'Digit2': case 'Numpad2': if (game.phase === 'start') startGame('duo'); break;
+    case 'Digit3': case 'Numpad3': if (game.phase === 'start') openSetup(); break;
+    case 'KeyN':
+      if (game.cls && (game.phase === 'play' || game.phase === 'turn') && !isBusy()){ toast(curP().label + ' 건너뛰기'); game.endT = 0; nextTurn(); }
+      break;
     case 'Escape': if (game.phase !== 'start') toStart(); break;
     case 'KeyM': setMuted(!muted); toast(muted ? '소리 끔' : '소리 켬'); break;
     case 'KeyQ': hiQ = !hiQ; applyQuality(); toast('화질 ' + (hiQ ? '높음' : '보통')); break;
@@ -1264,14 +1462,18 @@ addEventListener('keydown', e => {
 addEventListener('keyup', e => keys.delete(e.code));
 addEventListener('blur', () => keys.clear());
 addEventListener('pointerdown', () => initAudio());
-$('#again').addEventListener('click', e => { e.currentTarget.blur(); startGame(G.mode); });
+function again(){ startGame(G.mode, game.cls ? makeCls(game.cls.cfg) : null); }
+$('#again').addEventListener('click', e => { e.currentTarget.blur(); again(); });
+$('#setupForm').addEventListener('submit', e => { e.preventDefault(); startClass(); });
+$('#cCancel').addEventListener('click', closeSetup);
+document.querySelectorAll('input[name=cKind]').forEach(r => r.addEventListener('change', syncKind));
 $('#home').addEventListener('click', e => { e.currentTarget.blur(); toStart(); });
 if (QUIZ.title){ $('#qtitle').textContent = QUIZ.title; document.title = QUIZ.title; }
 $('#qrule').innerHTML = QUIZ_ON
   ? `${esc(QUIZ.subtitle || '공을 뽑으면 퀴즈가 나와요')} · 맞히면 뽑기 기회 <b>+${SET.bonusTries}</b> · 처음 기회 <b>${SET.startTries}번</b>`
   : '';
 document.querySelectorAll('.card').forEach(b => {
-  b.addEventListener('click', e => { e.currentTarget.blur(); startGame(b.dataset.mode); });
+  b.addEventListener('click', e => { e.currentTarget.blur(); if (b.dataset.mode === 'class') openSetup(); else startGame(b.dataset.mode); });
   b.addEventListener('mouseenter', () => selectCard(b.dataset.mode));
 });
 
