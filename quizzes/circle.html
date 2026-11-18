@@ -1497,7 +1497,8 @@ function startGame(mode, cls = null){
   $('#start').classList.add('hide');
   $('#help').innerHTML = helpHTML(cls ? 'class' : mode);
   $('#help').classList.toggle('hide', helpHidden);
-  game.phase = 'count'; game.countT = 3.8; game.lastCount = null;
+  game.phase = 'count';
+  requestAnimationFrame(fitCamera); game.countT = 3.8; game.lastCount = null;
   game.queue = BANK ? BANK.generate(bankSel.units, 40) : QUIZ_ON ? (SET.shuffle ? shuffle(QUIZ.questions.slice()) : QUIZ.questions.slice()) : [];
   game.pending = []; game.asked = 0; game.endT = 0; game.cur = null; game.wrong = []; game.round2 = 0;
   $('#result').classList.add('hide'); $('#quiz').classList.add('hide');
@@ -1669,6 +1670,7 @@ function toStart(){
   $('#help').classList.add('hide');
   $('#count').textContent = '';
   for (const c of claws){ if (c.held) dropHeld(c, true); if (c.state !== 'idle') c.state = 'up'; }
+  fitCamera();
   selectCard(G.mode);
 }
 
@@ -1733,7 +1735,7 @@ addEventListener('keydown', e => {
     case 'KeyM': setMuted(!muted); toast(muted ? '소리 끔' : '소리 켬'); break;
     case 'KeyQ': hiQ = !hiQ; applyQuality(); toast('화질 ' + (hiQ ? '높음' : '보통')); break;
     case 'KeyR': if (game.phase !== 'start'){ for (const c of claws) if (c.held) dropHeld(c, true); spawnBalls(); toast('공을 다시 채웠어요'); } break;
-    case 'KeyH': helpHidden = !helpHidden; if (game.phase !== 'start') $('#help').classList.toggle('hide', helpHidden); break;
+    case 'KeyH': helpHidden = !helpHidden; if (game.phase !== 'start') $('#help').classList.toggle('hide', helpHidden); fitCamera(); break;
     case 'KeyF': {
       const d = document;
       if (!d.fullscreenElement) d.documentElement.requestFullscreen?.().catch(() => toast('전체화면을 쓸 수 없어요'));
@@ -1933,14 +1935,24 @@ const sfx = {
 
 /* ---------------- 화면 크기 · 카메라 ---------------- */
 function fitCamera(){
-  const w = innerWidth, h = innerHeight, asp = w / h;
-  camera.aspect = asp;
-  const fw = G.W + 2 * G.F + 1, fh = G.H + G.HT + G.HB + 2.2;
+  // 점수판(위)·안내 띠나 화면 버튼(아래)이 차지하는 자리를 빼고, 남은 곳에 기계(귀 끝~받침)가 꼭 맞게
+  const w = innerWidth, h = innerHeight;
+  camera.aspect = w / h;
+  const top = w < 600 ? 74 : 86;
+  let bottom = 14;
+  const help = document.getElementById('help');
+  if (help && !help.classList.contains('hide') && getComputedStyle(help).display !== 'none') bottom = help.offsetHeight + 26;
+  if (TOUCH && game.phase !== 'start') bottom = Math.max(bottom, 118);
+  const side = w < 600 ? 8 : 20;
+  const availH = Math.max(160, h - top - bottom), availW = Math.max(160, w - side * 2);
+  const yTop = G.H + G.HT + 1.25, yBot = -G.HB - .3;
+  const cw = G.W + 2 * G.F + .5, ch = yTop - yBot;
   const tf = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
-  const dist = Math.max((fh / 2) / tf, (fw / 2) / (tf * asp)) * 1.03;
-  const cy = (G.H + G.HT + 1.1 - G.HB) / 2;
-  camera.position.set(0, cy, G.D / 2 + G.FD + dist);
-  camera.lookAt(0, cy, 0);
+  const Hv = Math.max(ch * h / availH, (cw * w / availW) / camera.aspect);   // 앞면에서 보이는 세로 길이
+  const dist = Hv / 2 / tf;
+  const camY = (yTop + yBot) / 2 + (top + availH / 2 - h / 2) * (Hv / h);
+  camera.position.set(0, camY, G.D / 2 + G.FD + dist);
+  camera.lookAt(0, camY, 0);
   camera.updateProjectionMatrix();
 }
 function resize(){
