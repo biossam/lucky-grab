@@ -1,0 +1,14 @@
+{
+  "title": "연산 퀴즈 (3~6학년)",
+  "subtitle": "학년·학기·단원을 골라요",
+  "bank": "../bank/math.js",
+  "settings": {
+    "startTries": 3,
+    "bonusTries": 2,
+    "goldBonusTries": 3,
+    "turnSeconds": 20,
+    "shuffle": true,
+    "shuffleChoices": true
+  },
+  "questions": []
+}

@@ -15,7 +15,11 @@ BLOCK = re.compile(r'(<script type="application/json" id="quiz-data">\n).*?(\n</
 
 def check(d, name):
     qs = d.get('questions') or []
-    assert qs, f'{name}: 문제가 없어요'
+    if d.get('bank'):
+        assert isinstance(d['bank'], str) and re.fullmatch(r'\.\./bank/[a-z0-9_-]+\.js', d['bank']), f'{name}: bank 주소는 ../bank/이름.js 꼴이어야 해요'
+        assert (ROOT / 'bank' / d['bank'].split('/')[-1]).exists(), f'{name}: 문제 뱅크 파일이 없어요'
+    else:
+        assert qs, f'{name}: 문제가 없어요'
     seen = set()
     for i, q in enumerate(qs, 1):
         t = q.get('type') or ('choice' if 'choices' in q else 'open')

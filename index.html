@@ -19,7 +19,7 @@ html,body{margin:0;height:100%;background:var(--bg);overflow:hidden;color:var(--
 #c{position:fixed;inset:0;width:100%;height:100%;display:block}
 
 /* 시작 화면 */
-.overlay{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+.overlay{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:safe center;overflow-y:auto;
   padding:24px;background:rgba(250,250,250,.72);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
   transition:opacity .35s;z-index:10}
 .overlay.hide{opacity:0;pointer-events:none}
@@ -187,6 +187,27 @@ kbd{font-family:var(--body);font-weight:700;background:#fff;border:1px solid var
 .score i .fish{width:1.5em}
 .res b .fish{width:.75em;height:.5em;margin-left:4px;vertical-align:.05em}
 
+/* 문제 고르기 (문제 뱅크) */
+.bank{display:flex;flex-direction:column;gap:8px;background:#fff;border:1px solid var(--line);border-top:3px solid var(--accent);
+  border-radius:var(--radius);padding:12px 16px;margin:0 0 18px;width:min(680px,94vw)}
+.brow{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.brow>span{width:40px;font-weight:700;font-size:14px;color:var(--ink2)}
+.bseg{display:flex;gap:6px;flex-wrap:wrap;flex:1}
+.bseg button{font:inherit;font-size:15px;font-weight:500;padding:5px 12px;border:1px solid var(--line);border-radius:var(--radius);
+  background:#fff;color:var(--ink);cursor:pointer}
+.bseg button:hover{border-color:var(--accent)}
+.bseg button[aria-pressed=true]{border-color:var(--accent);background:var(--p1bg);font-weight:700}
+.bnote{font-size:12px;color:var(--muted)}
+.overlay.has-bank h1{font-size:clamp(44px,7vw,92px)}
+.overlay.has-bank .cat{display:none}
+.overlay.has-bank .sub{margin-bottom:12px}
+/* 분수: 위아래로 */
+.frac{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;line-height:1.08;font-size:.8em;margin:0 .08em}
+.frac>span{padding:0 .14em}
+.frac>span:first-child{border-bottom:.09em solid currentColor}
+.mixed{white-space:nowrap}
+.qno .qtag{font-family:var(--body);font-size:13px;font-weight:700;color:var(--accent);background:var(--p1bg);border-radius:99px;padding:2px 9px;margin-left:8px;vertical-align:4px}
+
 #loading{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;background:var(--bg);z-index:30;transition:opacity .4s}
 #loading b{font-family:var(--display);font-weight:700;font-size:52px}
 #loading small{color:var(--muted);font-size:15px;text-align:center;padding:0 20px}
@@ -226,6 +247,12 @@ kbd{font-family:var(--body);font-weight:700;background:#fff;border:1px solid var
   <div class="kicker" id="qtitle">LUCKY GRAB</div>
   <h1>ARE YOU<br><em>READY?</em></h1>
   <div class="rule" id="qrule"></div>
+  <div class="bank" id="bank" hidden>
+    <div class="brow"><span>학년</span><div class="bseg" id="bGrade"></div></div>
+    <div class="brow"><span>학기</span><div class="bseg" id="bSem"></div></div>
+    <div class="brow"><span>단원</span><div class="bseg" id="bUnits"></div></div>
+    <div class="bnote">2022 개정 교과서의 공통 연산 단원이에요. 출판사마다 단원 이름·순서가 조금 다를 수 있어요. 문제는 판마다 새 숫자로 만들어져요.</div>
+  </div>
   <div class="sub">SELECT PLAYERS</div>
   <div class="cards">
     <button class="card p1" data-mode="solo"><b>1</b><span><strong>PLAYER</strong><small>혼자 · 세로 화면</small></span></button>
@@ -333,7 +360,8 @@ const SET = {
   startTries: num(SET0.startTries, 3, 1, 50), bonusTries: num(SET0.bonusTries, 2, 0, 20), goldBonusTries: num(SET0.goldBonusTries, 3, 0, 20),
   turnSeconds: num(SET0.turnSeconds, 20, 5, 120), shuffle: SET0.shuffle !== false, shuffleChoices: SET0.shuffleChoices !== false
 };
-const QUIZ_ON = Array.isArray(QUIZ.questions) && QUIZ.questions.length > 0;
+const QUIZ_ON = (Array.isArray(QUIZ.questions) && QUIZ.questions.length > 0) || typeof QUIZ.bank === 'string';
+let BANK = null;   // 문제 뱅크 (bank/*.js) — 퀴즈 JSON에 "bank" 주소가 있을 때만
 const TURN = SET.turnSeconds;    // 자동으로 집기까지 걸리는 시간(초)
 
 /* ---------------- 렌더러 ---------------- */
@@ -934,7 +962,7 @@ function win(b){
   if (p){ const st = stat(p); st.score += pts; st.grabs++; }
   popup(c, pts);
   sfx.win(pts > 1);
-  if (QUIZ_ON && !game.queue.length && game.cls) refillQueue();
+  if (QUIZ_ON && !game.queue.length && (game.cls || BANK)) refillQueue();
   if (QUIZ_ON && game.queue.length) game.pending.push({ c, gold: b.gold, p });
 }
 
@@ -1087,6 +1115,7 @@ function readSetup(){
   return cfg;
 }
 function startClass(){
+  if (BANK && !bankSel.units.length){ toast('단원을 하나 이상 골라 주세요'); closeSetup(); return; }
   const cfg = readSetup(); if (!cfg) return;
   saveCls(cfg);
   $('#setup').classList.add('hide');
@@ -1112,6 +1141,7 @@ function nextTurn(){
 }
 
 function startGame(mode, cls = null){
+  if (BANK && !bankSel.units.length){ toast('단원을 하나 이상 골라 주세요'); toStart(); return; }
   initAudio();
   game.cls = cls;
   try { history.replaceState(null, '', '#' + (cls ? 'class' : mode)); } catch (e) {}
@@ -1122,7 +1152,7 @@ function startGame(mode, cls = null){
   $('#help').innerHTML = helpHTML(cls ? 'class' : mode);
   $('#help').classList.toggle('hide', helpHidden);
   game.phase = 'count'; game.countT = 3.8; game.lastCount = null;
-  game.queue = QUIZ_ON ? (SET.shuffle ? shuffle(QUIZ.questions.slice()) : QUIZ.questions.slice()) : [];
+  game.queue = BANK ? BANK.generate(bankSel.units, 40) : QUIZ_ON ? (SET.shuffle ? shuffle(QUIZ.questions.slice()) : QUIZ.questions.slice()) : [];
   game.pending = []; game.asked = 0; game.endT = 0; game.cur = null; game.wrong = []; game.round2 = 0;
   $('#result').classList.add('hide'); $('#quiz').classList.add('hide');
   $('#count').textContent = ''; $('#count').className = '';
@@ -1132,6 +1162,10 @@ function shuffle(a){ for (let i = a.length - 1; i > 0; i--){ const j = Math.floo
 
 /* ---------------- 퀴즈 ---------------- */
 const esc = t => String(t ?? '').replace(/[&<>"]/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
+// 분수 표기 {3/4}, 대분수 {2|1/3} 을 위아래 분수로 (글자를 먼저 걸러낸 뒤 숫자만 바꿔요)
+const fmt = t => esc(t)
+  .replace(/\{(\d+)\|(\d+)\/(\d+)\}/g, '<span class="mixed">$1<span class="frac"><span>$2</span><span>$3</span></span></span>')
+  .replace(/\{(\d+)\/(\d+)\}/g, '<span class="frac"><span>$1</span><span>$2</span></span>');
 function qType(q){ return q.type || (Array.isArray(q.choices) ? 'choice' : 'open'); }
 function openQuiz({ c, gold, p }){
   const q = game.queue.shift(); if (!q) return;
@@ -1140,10 +1174,10 @@ function openQuiz({ c, gold, p }){
   const box = $('#qbox');
   box.className = 'qbox ' + (c.i ? 'p2' : 'p1');
   box.querySelector('.qwho').textContent = p ? p.label : G.mode === 'duo' ? 'PLAYER ' + (c.i + 1) : '도전!';
-  box.querySelector('.qno').textContent = game.asked + '번째 문제';
+  box.querySelector('.qno').innerHTML = game.asked + '번째 문제' + (q.tag ? `<span class="qtag">${esc(q.tag)}</span>` : '');
   const gt = box.querySelector('.qgold');
   gt.hidden = !gold; gt.textContent = p ? '황금 냥이 문제 · 맞히면 물고기 2마리' : '황금 냥이 문제 · 맞히면 기회 +' + SET.goldBonusTries;
-  box.querySelector('.qtext').textContent = q.q || '';
+  box.querySelector('.qtext').innerHTML = fmt(q.q || '');
   const img = box.querySelector('.qimg');
   const okImg = typeof q.image === 'string' && (/^data:image\//.test(q.image) || !/^[a-z][a-z0-9+.-]*:|^\/\//i.test(q.image));
   if (okImg){ img.src = q.image; img.hidden = false; } else { img.hidden = true; img.removeAttribute('src'); }
@@ -1159,7 +1193,7 @@ function openQuiz({ c, gold, p }){
     if (cur.type === 'choice' && SET.shuffleChoices !== false) shuffle(cur.order);
     cur.order.map(i => opts[i]).forEach((o, k) => {
       const b = document.createElement('button'); b.className = 'qc';
-      b.innerHTML = cur.type === 'ox' ? esc(o) : `<span class="n">${k + 1}</span><span>${esc(o)}</span>`;
+      b.innerHTML = cur.type === 'ox' ? esc(o) : `<span class="n">${k + 1}</span><span>${fmt(o)}</span>`;
       b.addEventListener('click', () => chooseAnswer(k));
       ch.appendChild(b);
     });
@@ -1189,7 +1223,7 @@ function revealOpen(){
   const cur = game.cur; if (!cur || cur.revealed) return;
   cur.revealed = true;
   const box = $('#qbox');
-  box.querySelector('.qchoices').innerHTML = `<div class="qanswer"><small>정답</small>${esc(cur.q.answer)}</div>`;
+  box.querySelector('.qchoices').innerHTML = `<div class="qanswer"><small>정답</small>${fmt(cur.q.answer)}</div>`;
   const act = box.querySelector('.qactions'); act.innerHTML = '';
   const y = document.createElement('button'); y.className = 'btn good'; y.innerHTML = '맞혔어요 <kbd>O</kbd>';
   const n = document.createElement('button'); n.className = 'btn bad'; n.innerHTML = '틀렸어요 <kbd>X</kbd>';
@@ -1215,10 +1249,10 @@ function judge(right){
   } else {
     const ans = cur.type === 'ox' ? ['O', 'X'][correctIndex(cur)] : cur.type === 'choice' ? (shownIndex(cur) + 1) + '번 ' + (cur.q.choices[correctIndex(cur)] ?? '') : cur.q.answer;
     if (!game.wrong.includes(cur.q)) game.wrong.push(cur.q);
-    html = `<b class="bad">아쉬워요!</b>정답은 <strong>${esc(ans)}</strong> 예요.`;
+    html = `<b class="bad">아쉬워요!</b>정답은 <strong>${fmt(ans)}</strong> 예요.`;
     sfx.slip();
   }
-  if (cur.q.explain) html += `<div>${esc(cur.q.explain)}</div>`;
+  if (cur.q.explain) html += `<div>${fmt(cur.q.explain)}</div>`;
   box.querySelector('.qresult').innerHTML = html;
   const act = box.querySelector('.qactions'); act.innerHTML = '';
   const go = document.createElement('button'); go.className = 'btn primary'; go.innerHTML = '계속하기 <kbd>Enter</kbd>';
@@ -1228,6 +1262,7 @@ function judge(right){
 // 우리 반 모드: 문제를 다 쓰면 틀린 문제부터 다시 섞어서 내요
 function refillQueue(){
   const wrong = game.wrong.splice(0);
+  if (BANK){ game.queue = shuffle(wrong).concat(BANK.generate(bankSel.units, 40)); return; }   // 뱅크: 새 문제를 더 만들어요
   const rest = QUIZ.questions.filter(q => !wrong.includes(q));
   game.queue = shuffle(wrong).concat(shuffle(rest.slice()));
   game.round2 = (game.round2 || 0) + 1;
@@ -1238,7 +1273,8 @@ function closeQuiz(){
   $('#quiz').classList.add('hide');
   game.cur = null;
   for (const c of claws) c.timer = Math.max(c.timer, 5);
-  if (!game.queue.length && !game.cls) endGame('문제를 모두 풀었어요');
+  if (!game.queue.length && (game.cls || BANK)) refillQueue();
+  if (!game.queue.length && !game.cls && !BANK) endGame('문제를 모두 풀었어요');
   else game.phase = game.phase === 'over' ? 'over' : 'play';
 }
 function endGame(reason){
@@ -1369,6 +1405,44 @@ function twice(key, msg){
   if (twiceKey === key && now - twiceT < 2000){ twiceKey = ''; return true; }
   twiceKey = key; twiceT = now; toast(msg); return false;
 }
+/* ---------------- 문제 고르기 (학년 · 학기 · 단원) ---------------- */
+const BANK_KEY = 'luckygrab-bank-v1';
+const bankSel = { grade: 6, sem: 2, units: [] };
+const unitsOf = () => BANK.UNITS.filter(u => u.grade === bankSel.grade && u.sem === bankSel.sem);
+function saveBank(){ try { localStorage.setItem(BANK_KEY, JSON.stringify(bankSel)); } catch (e) {} }
+function setupBank(){
+  try {
+    const v = JSON.parse(localStorage.getItem(BANK_KEY) || '{}') || {};
+    if ([3, 4, 5, 6].includes(v.grade)) bankSel.grade = v.grade;
+    if ([1, 2].includes(v.sem)) bankSel.sem = v.sem;
+    if (Array.isArray(v.units)) bankSel.units = v.units.filter(id => typeof id === 'string' && unitsOf().some(u => u.id === id));
+  } catch (e) {}
+  if (!bankSel.units.length) bankSel.units = unitsOf().map(u => u.id);
+  $('#bank').hidden = false; $('#start').classList.add('has-bank');
+  renderBank();
+}
+function renderBank(){
+  const seg = (el, items) => {
+    el.innerHTML = '';
+    for (const it of items){
+      const b = document.createElement('button'); b.type = 'button'; b.textContent = it.label;
+      b.setAttribute('aria-pressed', String(it.on));
+      b.addEventListener('click', e => { e.currentTarget.blur(); it.click(); saveBank(); renderBank(); });
+      el.appendChild(b);
+    }
+  };
+  const pickAll = () => { bankSel.units = unitsOf().map(u => u.id); };
+  seg($('#bGrade'), [3, 4, 5, 6].map(g => ({ label: g + '학년', on: bankSel.grade === g, click: () => { bankSel.grade = g; pickAll(); } })));
+  seg($('#bSem'), [1, 2].map(s => ({ label: s + '학기', on: bankSel.sem === s, click: () => { bankSel.sem = s; pickAll(); } })));
+  seg($('#bUnits'), unitsOf().map(u => ({ label: u.name, on: bankSel.units.includes(u.id), click: () => {
+    const i = bankSel.units.indexOf(u.id); if (i >= 0) bankSel.units.splice(i, 1); else bankSel.units.push(u.id);
+  } })));
+  const n = bankSel.units.length;
+  $('#qrule').innerHTML = n
+    ? `<b>${bankSel.grade}-${bankSel.sem}</b> · 단원 ${n}개 · 맞히면 뽑기 기회 <b>+${SET.bonusTries}</b> · 처음 기회 <b>${SET.startTries}번</b>`
+    : '단원을 하나 이상 골라 주세요';
+}
+
 function again(){ startGame(G.mode, game.cls ? makeCls(game.cls.cfg) : null); }
 $('#again').addEventListener('click', e => { e.currentTarget.blur(); again(); });
 $('#setupForm').addEventListener('submit', e => { e.preventDefault(); startClass(); });
@@ -1484,6 +1558,10 @@ function loop(now){
 
 (async () => {
   try { await Promise.race([Promise.all([document.fonts.load('700 80px Gaegu'), document.fonts.load('700 28px "Gothic A1"')]), new Promise(r => setTimeout(r, 2500))]); } catch (e) {}
+  if (QUIZ.bank){
+    try { BANK = await import(new URL(QUIZ.bank, location.href).href); setupBank(); }
+    catch (e) { console.warn('문제 뱅크를 불러오지 못했어요', e); $('#qrule').textContent = '문제 뱅크를 불러오지 못했어요'; }
+  }
   const first = location.hash === '#solo' ? 'solo' : 'duo';
   buildWorld(first);
   selectCard(first);
