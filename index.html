@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="referrer" content="no-referrer">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; media-src 'self' data: blob:; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
 <title>LUCKY GRAB</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -275,8 +276,9 @@ kbd{font-family:var(--body);font-weight:700;background:#fff;border:1px solid var
   <h1>게임 끝!</h1>
   <div class="rule" id="rreason"></div>
   <div class="res-cards" id="rcards"></div>
-  <div class="res-list" id="rlist"></div>
-  <div class="res-actions"><button class="btn primary" id="again">다시 하기 <kbd>Enter</kbd></button><button class="btn" id="home">처음으로 <kbd>ESC</kbd></button></div>
+  <div class="rule" id="rthanks" hidden>모두 수고했어요!</div>
+  <div class="res-list" id="rlist" hidden></div>
+  <div class="res-actions"><button class="btn primary" id="again">다시 하기 <kbd>Enter</kbd></button><button class="btn" id="home">처음으로 <kbd>ESC</kbd></button><button class="btn" id="rshow" hidden>번호별 보기 (선생님)</button></div>
 </div>
 
 <!-- ===================== 퀴즈 내용 =====================
@@ -1243,7 +1245,7 @@ function endGame(reason){
   game.phase = 'over';
   $('#quiz').classList.add('hide'); $('#help').classList.add('hide'); $('#turn').classList.add('hide');
   $('#rreason').textContent = reason;
-  $('#rlist').innerHTML = '';
+  $('#rlist').innerHTML = ''; $('#rlist').hidden = true; $('#rshow').hidden = true; $('#rthanks').hidden = true;
   if (game.cls){
     const k = game.cls, rk = p => stat(p).fish * 10000 + stat(p).correct * 100 + stat(p).score;
     const sorted = k.ids.slice().sort((a, b) => rk(b) - rk(a));
@@ -1256,7 +1258,9 @@ function endGame(reason){
       $('#rcards').innerHTML = k.ids.map(p => card(p, best > 0 && rk(p) === best)).join('');
     } else {
       $('#rcards').innerHTML = sorted.slice(0, 3).filter(p => rk(p) > 0).map(p => card(p, rk(p) === best)).join('');
+      // 번호별 결과는 선생님이 눌러야 보여요 (교실 TV에 개인 성적이 바로 드러나지 않게)
       $('#rlist').innerHTML = k.ids.slice().sort((a, b) => a.id - b.id).map(p => `<span>${esc(p.label)} ${FISH}<b>${stat(p).fish}</b></span>`).join('');
+      $('#rthanks').hidden = false; $('#rshow').hidden = false; $('#rshow').textContent = '번호별 보기 (선생님)';
     }
     $('#result').classList.remove('hide');
     sfx.win(true);
@@ -1325,13 +1329,13 @@ addEventListener('keydown', e => {
     else if (!cur.answered && cur.type === 'ox' && (e.code === 'KeyO' || e.code === 'KeyX')) chooseAnswer(e.code === 'KeyO' ? 0 : 1);
     else if (!cur.answered && cur.type === 'ox' && num && +num[2] <= 2) chooseAnswer(+num[2] - 1);
     else if (!cur.answered && cur.type === 'open' && cur.revealed && (e.code === 'KeyO' || e.code === 'KeyX')) judge(e.code === 'KeyO');
-    else if (e.code === 'Escape') toStart();
+    else if (e.code === 'Escape'){ if (twice('esc', 'ESC를 한 번 더 누르면 처음 화면으로 가요 (진행 상황이 사라져요)')) toStart(); }
     return;
   }
   if (game.phase === 'over'){
     pressedNow.delete(e.code);
-    if (e.code === 'Enter' || e.code === 'Space'){ e.preventDefault(); again(); }
-    else if (e.code === 'Escape') toStart();
+    if (e.code === 'Enter' || e.code === 'Space'){ e.preventDefault(); if (twice('enter', 'Enter를 한 번 더 누르면 새 게임을 시작해요 (지금 결과가 사라져요)')) again(); }
+    else if (e.code === 'Escape'){ if (twice('esc', 'ESC를 한 번 더 누르면 처음 화면으로 가요 (지금 결과가 사라져요)')) toStart(); }
     return;
   }
   switch (e.code){
@@ -1341,7 +1345,7 @@ addEventListener('keydown', e => {
     case 'KeyN':
       if (game.cls && (game.phase === 'play' || game.phase === 'turn') && !isBusy()){ toast(curP().label + ' 건너뛰기'); game.endT = 0; nextTurn(); }
       break;
-    case 'Escape': if (game.phase !== 'start') toStart(); break;
+    case 'Escape': if (game.phase !== 'start' && twice('esc', 'ESC를 한 번 더 누르면 처음 화면으로 가요 (진행 상황이 사라져요)')) toStart(); break;
     case 'KeyM': setMuted(!muted); toast(muted ? '소리 끔' : '소리 켬'); break;
     case 'KeyQ': hiQ = !hiQ; applyQuality(); toast('화질 ' + (hiQ ? '높음' : '보통')); break;
     case 'KeyR': if (game.phase !== 'start'){ for (const c of claws) if (c.held) dropHeld(c, true); spawnBalls(); toast('공을 다시 채웠어요'); } break;
@@ -1357,12 +1361,25 @@ addEventListener('keydown', e => {
 addEventListener('keyup', e => keys.delete(e.code));
 addEventListener('blur', () => keys.clear());
 addEventListener('pointerdown', () => initAudio());
+// 우리 반 모드: 진행 상황이 사라지는 키는 2초 안에 두 번 눌러야 작동
+let twiceKey = '', twiceT = 0;
+function twice(key, msg){
+  if (!game.cls) return true;
+  const now = performance.now();
+  if (twiceKey === key && now - twiceT < 2000){ twiceKey = ''; return true; }
+  twiceKey = key; twiceT = now; toast(msg); return false;
+}
 function again(){ startGame(G.mode, game.cls ? makeCls(game.cls.cfg) : null); }
 $('#again').addEventListener('click', e => { e.currentTarget.blur(); again(); });
 $('#setupForm').addEventListener('submit', e => { e.preventDefault(); startClass(); });
 $('#cCancel').addEventListener('click', closeSetup);
 document.querySelectorAll('input[name=cKind]').forEach(r => r.addEventListener('change', syncKind));
 $('#home').addEventListener('click', e => { e.currentTarget.blur(); toStart(); });
+$('#rshow').addEventListener('click', e => {
+  e.currentTarget.blur();
+  const l = $('#rlist'); l.hidden = !l.hidden;
+  e.currentTarget.textContent = l.hidden ? '번호별 보기 (선생님)' : '번호별 결과 숨기기';
+});
 if (QUIZ.title){ $('#qtitle').textContent = QUIZ.title; document.title = QUIZ.title; }
 $('#qrule').innerHTML = QUIZ_ON
   ? `${esc(QUIZ.subtitle || '공을 뽑으면 퀴즈가 나와요')} · 맞히면 뽑기 기회 <b>+${SET.bonusTries}</b> · 처음 기회 <b>${SET.startTries}번</b>`
