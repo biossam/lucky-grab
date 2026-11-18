@@ -178,6 +178,14 @@ kbd{font-family:var(--body);font-weight:700;background:#fff;border:1px solid var
 .res-list span{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:3px 10px;font-size:14px;color:var(--ink2)}
 .res-list span b{font-family:var(--display);font-size:22px;margin-left:5px;color:var(--ink)}
 
+.fish{width:1.7em;height:1.05em;vertical-align:-.15em}
+.fishes{display:flex;gap:6px;margin:6px 0 2px}
+.fishes .fish{width:64px;height:40px;animation:swim .9s cubic-bezier(.2,1.6,.4,1) both}
+.fishes .fish:nth-child(2){animation-delay:.15s}
+@keyframes swim{0%{transform:translateX(40px) scale(.3);opacity:0}100%{transform:none;opacity:1}}
+.score i .fish{width:1.5em}
+.res b .fish{width:.75em;height:.5em;margin-left:4px;vertical-align:.05em}
+
 #loading{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;background:var(--bg);z-index:30;transition:opacity .4s}
 #loading b{font-family:var(--display);font-weight:700;font-size:52px}
 #loading small{color:var(--muted);font-size:15px;text-align:center;padding:0 20px}
@@ -245,7 +253,7 @@ kbd{font-family:var(--body);font-weight:700;background:#fff;border:1px solid var
       <label class="f"><span>모둠 수</span><input type="number" id="cGroups" min="2" max="8" value="4"> 모둠</label>
       <label class="f"><span>바퀴 수</span><input type="number" id="cRounds" min="1" max="10" value="3"> 바퀴</label>
     </div>
-    <label class="f"><span>차례마다 기회</span><input type="number" id="cTries" min="1" max="10" value="2"> 번<small>퀴즈를 맞히면 그 차례에 기회가 더 생겨요</small></label>
+    <label class="f"><span>차례마다 기회</span><input type="number" id="cTries" min="1" max="10" value="2"> 번<small>기회는 늘지 않아요 · 퀴즈를 맞히면 물고기를 받아요 (황금 냥이 문제는 2마리)</small></label>
     <p class="note" id="cNote"></p>
     <div class="res-actions"><button type="submit" class="btn primary">시작하기 <kbd>Enter</kbd></button><button type="button" class="btn" id="cCancel">취소 <kbd>ESC</kbd></button></div>
     <p class="privacy">이름은 받지 않고 번호만 써요. 설정은 이 컴퓨터의 브라우저에만 저장돼요.</p>
@@ -1073,16 +1081,16 @@ function renderScores(){
     s2.classList.remove('off');
     s1.querySelector('small').textContent = k.cfg.name || '우리 반';
     s1.querySelector('b').textContent = p.label;
-    s1.querySelector('i').textContent = `기회 ${Math.max(0, c ? c.tries : 0)}번 · 맞힘 ${st.correct}`;
+    s1.querySelector('i').innerHTML = `남은 뽑기 ${Math.max(0, c ? c.tries : 0)}번 · ${FISH} ${st.fish}마리`;
     if (k.cfg.kind === 'group'){
       s2.querySelector('small').textContent = 'ROUND';
       s2.querySelector('b').textContent = `${k.round + 1}/${k.cfg.rounds}`;
-      s2.querySelector('i').textContent = k.ids.map(g => `${g.label} ${stat(g).correct}`).join(' · ');
+      s2.querySelector('i').innerHTML = k.ids.map(g => `${esc(g.label)} ${FISH}${stat(g).fish}`).join(' · ');
     } else {
       const nx = k.ids[k.idx + 1];
       s2.querySelector('small').textContent = '다음 차례';
       s2.querySelector('b').textContent = nx ? nx.label : '–';
-      s2.querySelector('i').textContent = `남은 ${k.ids.length - k.idx - 1}명`;
+      s2.querySelector('i').innerHTML = `남은 ${k.ids.length - k.idx - 1}명`;
     }
     return;
   }
@@ -1157,6 +1165,7 @@ function isBusy(){ return claws.some(c => c.state !== 'idle' || c.held) || balls
 const CLS_KEY = 'luckygrab-class-v1';
 function loadCls(){ try { return JSON.parse(localStorage.getItem(CLS_KEY) || '{}') || {}; } catch (e) { return {}; } }
 function saveCls(v){ try { localStorage.setItem(CLS_KEY, JSON.stringify(v)); } catch (e) {} }
+const FISH = '<svg class="fish" viewBox="0 0 42 26" aria-hidden="true"><path d="M31 13 L40 5 L40 21 Z" fill="#b0d1f0" stroke="#0b0b45" stroke-width="2.2" stroke-linejoin="round"/><ellipse cx="18" cy="13" rx="15.5" ry="10.5" fill="#b0d1f0" stroke="#0b0b45" stroke-width="2.2"/><path d="M19 7.5 Q22.5 13 19 18.5" fill="none" stroke="#0b0b45" stroke-width="1.8" stroke-linecap="round"/><circle cx="9.5" cy="11" r="2.1" fill="#0b0b45"/><path d="M5.5 16 Q8 18 10.5 16" fill="none" stroke="#0b0b45" stroke-width="1.7" stroke-linecap="round"/><circle cx="13" cy="15.5" r="1.8" fill="#f1bccd"/></svg>';
 function curP(){ const k = game.cls; return k ? k.ids[k.idx] : null; }
 function stat(p){ return p ? game.cls.stats.get(p.id) : null; }
 function makeCls(cfg){
@@ -1168,7 +1177,7 @@ function makeCls(cfg){
     if (cfg.order === 'rand') shuffle(nums);
     ids = nums.map(n => ({ id: n, label: n + '번' }));
   }
-  return { cfg, ids, idx: 0, round: 0, stats: new Map(ids.map(p => [p.id, { correct: 0, score: 0, grabs: 0 }])) };
+  return { cfg, ids, idx: 0, round: 0, stats: new Map(ids.map(p => [p.id, { correct: 0, score: 0, grabs: 0, fish: 0 }])) };
 }
 function openSetup(){
   const v = loadCls();
@@ -1259,7 +1268,7 @@ function openQuiz({ c, gold, p }){
   box.querySelector('.qwho').textContent = p ? p.label : G.mode === 'duo' ? 'PLAYER ' + (c.i + 1) : '도전!';
   box.querySelector('.qno').textContent = game.asked + '번째 문제';
   const gt = box.querySelector('.qgold');
-  gt.hidden = !gold; gt.textContent = '황금 냥이 문제 · 맞히면 기회 +' + SET.goldBonusTries;
+  gt.hidden = !gold; gt.textContent = p ? '황금 냥이 문제 · 맞히면 물고기 2마리' : '황금 냥이 문제 · 맞히면 기회 +' + SET.goldBonusTries;
   box.querySelector('.qtext').textContent = q.q || '';
   const img = box.querySelector('.qimg');
   const okImg = typeof q.image === 'string' && (/^data:image\//.test(q.image) || !/^[a-z][a-z0-9+.-]*:|^\/\//i.test(q.image));
@@ -1318,10 +1327,15 @@ function judge(right){
   cur.answered = true;
   const c = cur.c, box = $('#qbox');
   let html;
-  if (right){
+  if (right && cur.p){
+    // 우리 반 모드: 기회 대신 물고기
+    const n = cur.gold ? 2 : 1, st = stat(cur.p);
+    st.fish += n; st.correct++; c.correct++;
+    html = `<b class="good">정답! 물고기 +${n}</b><div class="fishes">${FISH.repeat(n)}</div>`;
+    sfx.win(true);
+  } else if (right){
     const bonus = cur.gold ? SET.goldBonusTries : SET.bonusTries;
     c.tries += bonus; c.correct++;
-    if (cur.p) stat(cur.p).correct++;
     html = `<b class="good">정답! 기회 +${bonus}</b>`;
     sfx.win(true);
   } else {
@@ -1350,18 +1364,18 @@ function endGame(reason){
   $('#rreason').textContent = reason;
   $('#rlist').innerHTML = '';
   if (game.cls){
-    const k = game.cls, rk = p => stat(p).correct * 1000 + stat(p).score;
+    const k = game.cls, rk = p => stat(p).fish * 10000 + stat(p).correct * 100 + stat(p).score;
     const sorted = k.ids.slice().sort((a, b) => rk(b) - rk(a));
     const best = rk(sorted[0]);
     const card = (p, top) => `<div class="res p3"><div class="who">${esc(p.label)}${top ? '<span class="win">1등</span>' : ''}</div>
-      <b>${stat(p).correct}</b><span>맞힌 문제 · 뽑은 공 ${stat(p).grabs}개 · 점수 ${stat(p).score}</span></div>`;
+      <b>${stat(p).fish}${FISH}</b><span>물고기 · 맞힌 문제 ${stat(p).correct}개 · 뽑은 공 ${stat(p).grabs}개</span></div>`;
     const tops = sorted.filter(p => rk(p) === best && best > 0);
     $('#rreason').textContent = (k.cfg.name ? k.cfg.name + ' · ' : '') + reason + (tops.length > 1 ? ' · 공동 1등이 있어요!' : '');
     if (k.cfg.kind === 'group'){
       $('#rcards').innerHTML = k.ids.map(p => card(p, best > 0 && rk(p) === best)).join('');
     } else {
       $('#rcards').innerHTML = sorted.slice(0, 3).filter(p => rk(p) > 0).map(p => card(p, rk(p) === best)).join('');
-      $('#rlist').innerHTML = k.ids.slice().sort((a, b) => a.id - b.id).map(p => `<span>${esc(p.label)}<b>${stat(p).correct}</b></span>`).join('');
+      $('#rlist').innerHTML = k.ids.slice().sort((a, b) => a.id - b.id).map(p => `<span>${esc(p.label)} ${FISH}<b>${stat(p).fish}</b></span>`).join('');
     }
     $('#result').classList.remove('hide');
     sfx.win(true);
