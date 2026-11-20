@@ -241,6 +241,9 @@ body.touch #help{display:none}
 body.student .card.p2,body.student .card.p3,body.student .hint{display:none}
 body.touch{touch-action:manipulation}
 
+.diff{justify-content:center;margin:-10px 0 16px}
+.diff>span{width:auto}
+
 #loading{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;background:var(--bg);z-index:30;transition:opacity .4s}
 #loading b{font-family:var(--display);font-weight:700;font-size:52px}
 #loading small{color:var(--muted);font-size:15px;text-align:center;padding:0 20px}
@@ -286,6 +289,7 @@ body.touch{touch-action:manipulation}
   <div class="kicker" id="qtitle">LUCKY GRAB</div>
   <h1>ARE YOU<br><em>READY?</em></h1>
   <div class="rule" id="qrule"></div>
+  <div class="brow diff" id="diffSel"><span>뽑기</span><div class="bseg" id="bDiff"></div></div>
   <div class="bank" id="bank" hidden>
     <div class="brow"><span>학년</span><div class="bseg" id="bGrade"></div></div>
     <div class="brow"><span>학기</span><div class="bseg" id="bSem"></div></div>
@@ -862,6 +866,8 @@ function physics(dt){
         if (p.z > D2 - r){ p.z = D2 - r; if (v.z > 0) v.z *= -E; }
         if (!b.dropping){
           for (const ch of chutes){
+            // 통 지붕에 얹힌 공은 안쪽으로 굴러 내려가게
+            if (p.x > ch.x0 - r * .3 && p.x < ch.x1 + r * .3 && p.y > ch.top - .05 && p.y < ch.top + r + .12) v.x += (ch.side < 0 ? 1 : -1) * 10 * h;
             if (p.x > ch.x0 && p.x < ch.x1 && p.y < ch.top){
               const up = ch.top - p.y, side = ch.side < 0 ? ch.x1 - p.x : p.x - ch.x0;
               if (up < side){ p.y = ch.top + r; if (v.y < 0) v.y *= -E; }
@@ -916,6 +922,14 @@ function landed(c){
   return false;
 }
 
+/* ---------------- 뽑기 난이도 ---------------- */
+const DIFFS = {
+  easy:   { label: '쉬움',   r: .95, dy: 1.0, chance: hd => hd < .45 ? .97 : hd < .75 ? .85 : .6,  slip: .04, slipGold: .1, cons: .45 },
+  normal: { label: '보통',   r: .85, dy: .8,  chance: hd => hd < .35 ? .9 : hd < .6 ? .6 : .3,    slip: .12, slipGold: .3, cons: 0 },
+  hard:   { label: '어려움', r: .75, dy: .7,  chance: hd => hd < .3 ? .8 : hd < .55 ? .45 : .15,  slip: .2,  slipGold: .4, cons: 0 }
+};
+const DIFF_KEY = 'luckygrab-diff-v1';
+let DIFF = 'easy';
 function beginClose(c){
   c.state = 'close';
   const gy = c.y - .95;
@@ -923,20 +937,20 @@ function beginClose(c){
   for (const b of balls){
     if (b.gone || b.held || b.dropping) continue;
     const hx = b.p.x - c.x, hz = b.p.z, hd = Math.hypot(hx, hz);
-    if (hd > .85 || Math.abs(b.p.y - gy) > .8) continue;
+    if (hd > DIFFS[DIFF].r || Math.abs(b.p.y - gy) > DIFFS[DIFF].dy) continue;
     const d = Math.hypot(hd, b.p.y - gy);
     if (d < bd){ bd = d; best = b; }
   }
   c.closeTh = SHUT_TH;
   if (best){
     const hd = Math.hypot(best.p.x - c.x, best.p.z);
-    let chance = hd < .35 ? .9 : hd < .6 ? .6 : .3;
+    let chance = DIFFS[DIFF].chance(hd);
     if (best.gold) chance *= .8;
     if (Math.random() < chance){
       c.held = best; best.held = c; best.v.set(0, 0, 0);
       c.hoff.set(best.p.x - c.x, best.p.y - c.y, best.p.z);
       c.closeTh = HOLD_TH;
-      c.slip = Math.random() < (best.gold ? .3 : .12);
+      c.slip = Math.random() < (best.gold ? DIFFS[DIFF].slipGold : DIFFS[DIFF].slip);
       c.slipY = c.y + (Y_TOP - c.y) * (.35 + Math.random() * .45);
     }
   }
@@ -979,7 +993,18 @@ function updateClaw(c, dt){
       c.y += 2.4 * dt;
       if (c.held && c.slip && c.y > c.slipY) dropHeld(c, true);
       if (!c.held && c.y > c.slipY + .6) c.open = Math.min(.55, c.open + dt * .8);
-      if (c.y >= Y_TOP){ c.y = Y_TOP; if (c.held) c.state = 'carry'; else { c.state = 'idle'; c.timer = TURN; } }
+      if (c.y >= Y_TOP){
+        c.y = Y_TOP;
+        if (c.held) c.state = 'carry';
+        else {
+          c.state = 'idle'; c.timer = TURN;
+          // 쉬움: 놓쳤을 때 가끔 위로 문제
+          if (QUIZ_ON && game.phase === 'play' && Math.random() < DIFFS[DIFF].cons){
+            if (!game.queue.length && (game.cls || BANK)) refillQueue();
+            if (game.queue.length){ game.pending.push({ c, gold: false, p: curP(), cons: true }); toast('아깝다! 위로 문제가 나와요'); }
+          }
+        }
+      }
       break;
     case 'carry': {
       const dx = c.chuteX - c.x, s = 3.4 * dt;
@@ -1223,7 +1248,7 @@ const fmt = t => esc(t)
   .replace(/\{(\d+)\|(\d+)\/(\d+)\}/g, '<span class="mixed">$1<span class="frac"><span>$2</span><span>$3</span></span></span>')
   .replace(/\{(\d+)\/(\d+)\}/g, '<span class="frac"><span>$1</span><span>$2</span></span>');
 function qType(q){ return q.type || (Array.isArray(q.choices) ? 'choice' : 'open'); }
-function openQuiz({ c, gold, p }){
+function openQuiz({ c, gold, p, cons }){
   const q = game.queue.shift(); if (!q) return;
   game.asked++; game.phase = 'quiz';
   game.cur = { c, gold, p, q, type: qType(q), answered: false, revealed: false };
@@ -1232,7 +1257,7 @@ function openQuiz({ c, gold, p }){
   box.querySelector('.qwho').textContent = p ? p.label : G.mode === 'duo' ? 'PLAYER ' + (c.i + 1) : '도전!';
   box.querySelector('.qno').innerHTML = game.asked + '번째 문제' + (q.tag ? `<span class="qtag">${esc(q.tag)}</span>` : '');
   const gt = box.querySelector('.qgold');
-  gt.hidden = !gold; gt.textContent = p ? '황금 냥이 문제 · 맞히면 물고기 2마리' : '황금 냥이 문제 · 맞히면 기회 +' + SET.goldBonusTries;
+  gt.hidden = !gold && !cons; gt.textContent = cons ? '아깝다! 위로 문제' : p ? '황금 냥이 문제 · 맞히면 물고기 2마리' : '황금 냥이 문제 · 맞히면 기회 +' + SET.goldBonusTries;
   box.querySelector('.qtext').innerHTML = fmt(q.q || '');
   const img = box.querySelector('.qimg');
   const okImg = typeof q.image === 'string' && (/^data:image\//.test(q.image) || !/^[a-z][a-z0-9+.-]*:|^\/\//i.test(q.image));
@@ -1519,6 +1544,7 @@ let QR = null;
 function studentURL(){
   const u = new URL(location.pathname, location.origin);
   u.searchParams.set('mode', 'student');
+  u.searchParams.set('d', DIFF);
   if (BANK){ u.searchParams.set('g', bankSel.grade); u.searchParams.set('s', bankSel.sem); u.searchParams.set('u', bankSel.units.join('.')); }
   return u.href;
 }
@@ -1565,6 +1591,23 @@ if (STUDENT){
   document.querySelector('.card.p1 strong').textContent = '시작하기';
   document.querySelector('.card.p1 small').textContent = '혼자 풀어요';
 }
+
+function renderDiff(){
+  const el = $('#bDiff'); el.innerHTML = '';
+  for (const [k, d] of Object.entries(DIFFS)){
+    const b = document.createElement('button'); b.type = 'button'; b.textContent = d.label;
+    b.setAttribute('aria-pressed', String(DIFF === k));
+    b.addEventListener('click', e => { e.currentTarget.blur(); DIFF = k; if (!STUDENT) try { localStorage.setItem(DIFF_KEY, k); } catch (er) {} renderDiff(); updateQR(); });
+    el.appendChild(b);
+  }
+}
+(() => {
+  let d = null;
+  if (STUDENT) d = PARAMS.get('d'); else try { d = localStorage.getItem(DIFF_KEY); } catch (e) {}
+  if (d && DIFFS[d]) DIFF = d;
+  if (STUDENT) $('#diffSel').hidden = true;
+  renderDiff();
+})();
 
 function again(){ startGame(G.mode, game.cls ? makeCls(game.cls.cfg) : null); }
 $('#again').addEventListener('click', e => { e.currentTarget.blur(); again(); });
