@@ -1579,7 +1579,7 @@ if (TOUCH){
   $('#touch').hidden = false;
   document.querySelectorAll('#touch button').forEach(b => {
     const k = b.dataset.k;
-    const down = e => { e.preventDefault(); initAudio(); b.setPointerCapture?.(e.pointerId); keys.add(k); pressedNow.add(k); b.classList.add('on'); };
+    const down = e => { e.preventDefault(); initAudio(); try { b.setPointerCapture?.(e.pointerId); } catch (er) {} keys.add(k); pressedNow.add(k); b.classList.add('on'); };
     const up = () => { keys.delete(k); b.classList.remove('on'); };
     b.addEventListener('pointerdown', down);
     b.addEventListener('pointerup', up); b.addEventListener('pointercancel', up); b.addEventListener('lostpointercapture', up);
